@@ -19,7 +19,7 @@ type ThemeMode = 'dark' | 'light';
 type FilterTab = 'all' | 'sharp' | 'soft' | 'blurry';
 type StrictnessPreset = 'relaxed' | 'standard' | 'strict';
 
-const APP_VERSION = '1.7.2';
+const APP_VERSION = '1.7.3';
 const DEFAULT_UPDATE_MANIFEST_URL = 'https://memories-stack.github.io/Iris/version.json';
 
 interface RemoteUpdateManifest {
@@ -2124,7 +2124,7 @@ export default function App() {
                   </div>
 
                   <div className="bento-hero-split">
-                    {/* Left Preview Viewport */}
+                    {/* Left Preview Viewport with Ambient Blur Backdrop & Exact-Aligned Eye-AF Box */}
                     <div
                       className="bento-preview-stage"
                       onClick={() => {
@@ -2135,65 +2135,99 @@ export default function App() {
                     >
                       {selectedItem ? (
                         <>
+                          {/* Subtle Ambient Blurred Backdrop so vertical photos never sit in stark black voids */}
                           <img
                             src={selectedItem.rescuedUrl || selectedItem.thumbUrl}
-                            alt={selectedItem.name}
+                            alt=""
+                            aria-hidden="true"
                             style={{
+                              position: 'absolute',
+                              inset: 0,
                               width: '100%',
                               height: '100%',
-                              objectFit: 'contain',
-                              display: 'block',
+                              objectFit: 'cover',
+                              filter: 'blur(28px) brightness(0.32) saturate(1.2)',
+                              transform: 'scale(1.15)',
+                              pointerEvents: 'none',
                             }}
                           />
-                          {selectedItem.analysis?.primaryFocusRegion && (
-                            <div
+
+                          {/* Exact Photo Wrapper so EYE-AF Box aligns 100% to the photo pixels */}
+                          <div
+                            style={{
+                              position: 'relative',
+                              height: '100%',
+                              maxWidth: '100%',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <img
+                              src={selectedItem.rescuedUrl || selectedItem.thumbUrl}
+                              alt={selectedItem.name}
                               style={{
-                                position: 'absolute',
-                                left: `${Math.min(72, Math.max(12, (selectedItem.analysis.primaryFocusRegion.box.x / Math.max(1, selectedItem.width)) * 100))}%`,
-                                top: `${Math.min(62, Math.max(10, (selectedItem.analysis.primaryFocusRegion.box.y / Math.max(1, selectedItem.height)) * 100))}%`,
-                                width: '24%',
-                                height: '24%',
-                                border: `2px solid ${
-                                  selectedItem.analysis.status === 'sharp'
-                                    ? '#2dd4bf'
-                                    : selectedItem.analysis.status === 'soft'
-                                    ? '#fb923c'
-                                    : '#f43f5e'
-                                }`,
-                                borderRadius: 10,
-                                background: 'rgba(45, 212, 191, 0.06)',
-                                boxShadow: '0 0 18px rgba(45, 212, 191, 0.25)',
-                                pointerEvents: 'none',
+                                maxHeight: '100%',
+                                maxWidth: '100%',
+                                width: 'auto',
+                                height: '100%',
+                                objectFit: 'contain',
+                                display: 'block',
+                                borderRadius: 6,
+                                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.55)',
                               }}
-                            >
-                              <span
+                            />
+                            {selectedItem.analysis?.primaryFocusRegion && (
+                              <div
                                 style={{
                                   position: 'absolute',
-                                  top: -20,
-                                  left: 0,
-                                  fontSize: 9.5,
-                                  fontWeight: 800,
-                                  letterSpacing: '0.04em',
-                                  color:
+                                  left: `${Math.min(70, Math.max(8, (selectedItem.analysis.primaryFocusRegion.box.x / Math.max(1, selectedItem.width)) * 100))}%`,
+                                  top: `${Math.min(65, Math.max(6, (selectedItem.analysis.primaryFocusRegion.box.y / Math.max(1, selectedItem.height)) * 100))}%`,
+                                  width: `${Math.min(48, Math.max(22, (selectedItem.analysis.primaryFocusRegion.box.width / Math.max(1, selectedItem.width)) * 100))}%`,
+                                  height: `${Math.min(38, Math.max(18, (selectedItem.analysis.primaryFocusRegion.box.height / Math.max(1, selectedItem.height)) * 100))}%`,
+                                  border: `2px solid ${
                                     selectedItem.analysis.status === 'sharp'
                                       ? '#2dd4bf'
                                       : selectedItem.analysis.status === 'soft'
                                       ? '#fb923c'
-                                      : '#f43f5e',
-                                  background: 'rgba(5, 9, 18, 0.86)',
-                                  padding: '2px 7px',
-                                  borderRadius: 5,
-                                  whiteSpace: 'nowrap',
+                                      : '#f43f5e'
+                                  }`,
+                                  borderRadius: 8,
+                                  background: 'rgba(45, 212, 191, 0.07)',
+                                  boxShadow: '0 0 14px rgba(45, 212, 191, 0.35)',
+                                  pointerEvents: 'none',
                                 }}
                               >
-                                {selectedItem.analysis.status === 'sharp'
-                                  ? 'EYE-AF LOCKED'
-                                  : selectedItem.analysis.status === 'soft'
-                                  ? 'SOFT FOCUS'
-                                  : 'BLUR DETECTED'}
-                              </span>
-                            </div>
-                          )}
+                                <span
+                                  style={{
+                                    position: 'absolute',
+                                    top: -19,
+                                    left: -2,
+                                    fontSize: 9,
+                                    fontWeight: 800,
+                                    letterSpacing: '0.04em',
+                                    color:
+                                      selectedItem.analysis.status === 'sharp'
+                                        ? '#2dd4bf'
+                                        : selectedItem.analysis.status === 'soft'
+                                        ? '#fb923c'
+                                        : '#f43f5e',
+                                    background: 'rgba(5, 9, 18, 0.90)',
+                                    padding: '2px 6px',
+                                    borderRadius: 4,
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {selectedItem.analysis.status === 'sharp'
+                                    ? 'EYE-AF LOCKED'
+                                    : selectedItem.analysis.status === 'soft'
+                                    ? 'SOFT FOCUS'
+                                    : 'BLUR DETECTED'}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
                           <div className="bento-exif-pill">
                             {inspectedMeta.camera || 'CAMERA'}
                             {inspectedMeta.bib ? `  •  Bib #${inspectedMeta.bib}` : ''}
@@ -2204,7 +2238,6 @@ export default function App() {
                         </>
                       ) : (
                         <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 24 }}>
-                          <div style={{ fontSize: 32, marginBottom: 8 }}>👁️</div>
                           <div style={{ fontWeight: 700, fontSize: 13.5, color: 'var(--text-main)' }}>
                             คลิกเพื่อเลือกโฟลเดอร์รูปภาพ (รองรับ 5,000+ รูป & RAW)
                           </div>
@@ -2215,43 +2248,124 @@ export default function App() {
                       )}
                     </div>
 
-                    {/* Right 3 AI Stage Breakdown Cards */}
+                    {/* Right Clean AI Telemetry Bars + Camera EXIF Summary (No Verbose Text Walls) */}
                     <div className="bento-stages-col">
-                      <div className="bento-stage-card" style={{ borderColor: 'rgba(56, 189, 248, 0.30)' }}>
-                        <div className="bento-stage-title">AI #1: 12×12 Skin & Torso Grid</div>
-                        <div className="bento-stage-desc">
-                          วิเคราะห์ความคมชัดเฉพาะโซนศีรษะและลำตัวนักวิ่ง แยกฉากหลังเบลออัตโนมัติ
+                      {/* Mini Telemetry Header: Score + Bib */}
+                      <div className="bento-telemetry-summary">
+                        <div>
+                          <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
+                            FOCUS CONFIDENCE
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 28,
+                              fontWeight: 900,
+                              lineHeight: 1.1,
+                              color:
+                                selectedItem?.analysis?.status === 'sharp'
+                                  ? '#2dd4bf'
+                                  : selectedItem?.analysis?.status === 'soft'
+                                  ? '#fb923c'
+                                  : '#f43f5e',
+                            }}
+                          >
+                            {selectedItem?.analysis ? `${selectedItem.analysis.score}%` : '--'}
+                          </div>
                         </div>
-                        <div className="bento-stage-stat" style={{ color: '#38bdf8' }}>
-                          {selectedItem?.analysis
-                            ? `${Math.round(selectedItem.analysis.subjectSharpness)} Energy • Bokeh ${selectedItem.analysis.bokehRatio}x`
-                            : 'Multi-Core C Ready'}
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
+                            RACE BIB OCR
+                          </div>
+                          <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text-main)' }}>
+                            {inspectedMeta.bib ? `#${inspectedMeta.bib}` : '—'}
+                          </div>
                         </div>
                       </div>
 
-                      <div className="bento-stage-card" style={{ borderColor: 'rgba(251, 146, 60, 0.30)' }}>
-                        <div className="bento-stage-title">AI #2: Vision Human Body Net</div>
-                        <div className="bento-stage-desc">
-                          ตรวจจับโครงสร้างนักวิ่งระดับ Deep Neural แม้ใส่โม่งดำ แว่นตา หรือหมวก
+                      {/* Clean 3-Stage AI Bars */}
+                      <div className="bento-stage-card" style={{ borderColor: 'rgba(56, 189, 248, 0.25)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span className="bento-stage-title">AI #1 · 12×12 Grid</span>
+                          <span className="bento-stage-stat" style={{ color: '#38bdf8' }}>
+                            {selectedItem?.analysis
+                              ? `${Math.round(selectedItem.analysis.subjectSharpness)} E`
+                              : 'Ready'}
+                          </span>
                         </div>
-                        <div className="bento-stage-stat" style={{ color: '#fb923c' }}>
-                          {inspectedMeta.humanCount
-                            ? `${inspectedMeta.humanCount} Humans${inspectedMeta.maskedRunner ? ' (Masked Mode)' : ''}`
-                            : 'Apple Neural Engine Active'}
+                        <div className="bento-bar-track">
+                          <div
+                            className="bento-bar-fill"
+                            style={{
+                              width: `${Math.min(100, Math.round(((selectedItem?.analysis?.subjectSharpness || 0) / 1600) * 100))}%`,
+                              background: '#38bdf8',
+                            }}
+                          />
+                        </div>
+                        <div className="bento-stage-desc">
+                          {selectedItem?.analysis
+                            ? `Bokeh Separation ${selectedItem.analysis.bokehRatio}x`
+                            : 'Multi-Core Subject Isolation'}
                         </div>
                       </div>
 
-                      <div className="bento-stage-card" style={{ borderColor: 'rgba(45, 212, 191, 0.32)' }}>
-                        <div className="bento-stage-title">AI #3: Face Capture Quality</div>
-                        <div className="bento-stage-desc">
-                          ซูมตรวจความคมชัดใบหน้าความละเอียด 1280px ป้องกันภาพกลางคืนหลุดเบลอ
+                      <div className="bento-stage-card" style={{ borderColor: 'rgba(251, 146, 60, 0.25)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span className="bento-stage-title">AI #2 · Human Body</span>
+                          <span className="bento-stage-stat" style={{ color: '#fb923c' }}>
+                            {inspectedMeta.humanCount
+                              ? `${inspectedMeta.humanCount} Detected`
+                              : 'Active'}
+                          </span>
                         </div>
-                        <div className="bento-stage-stat" style={{ color: '#2dd4bf' }}>
-                          {selectedItem?.analysis
-                            ? `${selectedItem.analysis.score}% ${selectedItem.analysis.status.toUpperCase()}`
-                            : '1280px ROI Ready'}
+                        <div className="bento-bar-track">
+                          <div
+                            className="bento-bar-fill"
+                            style={{
+                              width: inspectedMeta.humanCount ? '100%' : '35%',
+                              background: '#fb923c',
+                            }}
+                          />
+                        </div>
+                        <div className="bento-stage-desc">
+                          {inspectedMeta.maskedRunner
+                            ? 'Masked Runner Neural Lock'
+                            : 'Apple Vision Upper-Body Net'}
                         </div>
                       </div>
+
+                      <div className="bento-stage-card" style={{ borderColor: 'rgba(45, 212, 191, 0.28)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span className="bento-stage-title">AI #3 · Face Quality</span>
+                          <span className="bento-stage-stat" style={{ color: '#2dd4bf' }}>
+                            {selectedItem?.analysis
+                              ? `${selectedItem.analysis.score}% ${selectedItem.analysis.status.toUpperCase()}`
+                              : '1280px ROI'}
+                          </span>
+                        </div>
+                        <div className="bento-bar-track">
+                          <div
+                            className="bento-bar-fill"
+                            style={{
+                              width: `${selectedItem?.analysis?.score ?? 0}%`,
+                              background:
+                                selectedItem?.analysis?.status === 'blurry' ? '#f43f5e' : '#2dd4bf',
+                            }}
+                          />
+                        </div>
+                        <div className="bento-stage-desc">
+                          1280px High-Res Eye & Face Verification
+                        </div>
+                      </div>
+
+                      {selectedItem && (
+                        <button
+                          className="btn btn-mint"
+                          style={{ width: '100%', justifyContent: 'center', padding: '7px 12px', fontSize: 11.5 }}
+                          onClick={() => setWsMode('studio')}
+                        >
+                          ซูมลูกกะตา 100% ใน Pro Studio
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

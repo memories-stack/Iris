@@ -1126,15 +1126,15 @@ body, #root {
 
 .bento-hero-split {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 268px;
+  grid-template-columns: minmax(0, 1fr) 290px;
   gap: 14px;
   flex: 1;
-  min-height: 245px;
-  max-height: 290px;
+  min-height: 270px;
+  max-height: 310px;
 }
 
 .bento-preview-stage {
-  background: #050912;
+  background: #070b14;
   border: 1px solid rgba(56, 189, 248, 0.22);
   border-radius: 12px;
   position: relative;
@@ -1144,7 +1144,32 @@ body, #root {
   justify-content: center;
   cursor: pointer;
   height: 100%;
-  min-height: 240px;
+  min-height: 265px;
+  padding: 10px;
+}
+
+.bento-telemetry-summary {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 9px 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bento-bar-track {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.16);
+  overflow: hidden;
+  margin: 4px 0 3px;
+}
+
+.bento-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .bento-exif-pill {
