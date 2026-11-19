@@ -19,7 +19,7 @@ type ThemeMode = 'dark' | 'light';
 type FilterTab = 'all' | 'sharp' | 'soft' | 'blurry';
 type StrictnessPreset = 'relaxed' | 'standard' | 'strict';
 
-const APP_VERSION = '1.7.6';
+const APP_VERSION = '1.7.7';
 const DEFAULT_UPDATE_MANIFEST_URL = 'https://memories-stack.github.io/Iris/version.json';
 
 interface RemoteUpdateManifest {
@@ -551,7 +551,7 @@ function MiniNeuralCornerWidget({
   );
 }
 
-// 4B. 120fps Radial Iris Focus Radar Visualizer (360° Spectrum Ring + Precision Scale)
+// 4B. 120fps 3D Iris Neural Sphere & Optical Mesh Visualizer (Centered, Zero Clipping)
 function RadialIrisRadarWidget({
   pctSharp,
   pctSoft,
@@ -579,16 +579,31 @@ function RadialIrisRadarWidget({
     let lastTime = performance.now();
     let angle = 0;
 
+    // 3D Fibonacci Sphere Nodes (Neural Constellation Mesh)
+    const numNodes = 44;
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    const sphereNodes = Array.from({ length: numNodes }, (_, i) => {
+      const y = 1 - (i / (numNodes - 1)) * 2;
+      const radiusAtY = Math.sqrt(Math.max(0, 1 - y * y));
+      const theta = goldenAngle * i;
+      return {
+        x: Math.cos(theta) * radiusAtY,
+        y,
+        z: Math.sin(theta) * radiusAtY,
+        isWarm: i % 5 === 0,
+      };
+    });
+
     const draw = (now: number) => {
       const dt = Math.min(0.05, Math.max(0.001, (now - lastTime) * 0.001));
       lastTime = now;
 
-      const { pctSharp: pS, pctSoft: pM, pctBlurry: pB, focusScore: fScore, isScanning: scanning } = propsRef.current;
-      angle += dt * (scanning ? 1.8 : 0.32);
+      const { pctSharp: pS, focusScore: fScore, isScanning: scanning } = propsRef.current;
+      angle += dt * (scanning ? 1.65 : 0.45);
 
       const dpr = Math.min(2, window.devicePixelRatio || 2);
       const cssW = canvas.clientWidth || 240;
-      const cssH = canvas.clientHeight || 168;
+      const cssH = canvas.clientHeight || 175;
       if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
         canvas.width = Math.round(cssW * dpr);
         canvas.height = Math.round(cssH * dpr);
@@ -601,93 +616,98 @@ function RadialIrisRadarWidget({
       const h = cssH;
       const cx = w * 0.5;
       const cy = h * 0.5;
-      const outerR = Math.min(w, h) * 0.44;
-      const innerR = outerR * 0.48;
+      const R = Math.min(w, h) * 0.40;
 
       // Deep Obsidian Background
-      const bg = ctx.createRadialGradient(cx, cy, 4, cx, cy, outerR * 1.4);
-      bg.addColorStop(0, '#0a1426');
-      bg.addColorStop(1, '#050811');
+      const bg = ctx.createRadialGradient(cx, cy, 6, cx, cy, R * 1.65);
+      bg.addColorStop(0, '#0a1628');
+      bg.addColorStop(1, '#04070f');
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
 
-      // Outer Precision Tick Scale (60 ticks rotating gently)
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(angle * 0.35);
-      for (let i = 0; i < 60; i++) {
-        const a = (i * Math.PI * 2) / 60;
-        const isMajor = i % 5 === 0;
-        const r1 = outerR + 3;
-        const r2 = outerR + (isMajor ? 9 : 5);
-        ctx.strokeStyle = isMajor ? 'rgba(56, 189, 248, 0.55)' : 'rgba(148, 163, 184, 0.22)';
-        ctx.lineWidth = isMajor ? 1.4 : 0.8;
-        ctx.beginPath();
-        ctx.moveTo(Math.cos(a) * r1, Math.sin(a) * r1);
-        ctx.lineTo(Math.cos(a) * r2, Math.sin(a) * r2);
-        ctx.stroke();
-      }
-      ctx.restore();
+      // Rotate 3D Sphere around Y and X axes
+      const cosY = Math.cos(angle);
+      const sinY = Math.sin(angle);
+      const cosX = Math.cos(0.38);
+      const sinX = Math.sin(0.38);
 
-      // 72 Radial Iris Spectrum Rays (Sharp = Teal, Soft = Amber, Blurry = Coral)
-      const totalRays = 72;
-      const sharpFrac = pS + pM + pB > 0 ? pS / (pS + pM + pB) : 0.85;
-      const softFrac = pS + pM + pB > 0 ? pM / (pS + pM + pB) : 0.08;
-      const sharpCount = Math.round(totalRays * sharpFrac);
-      const softCount = Math.round(totalRays * softFrac);
+      const projected = sphereNodes.map((n) => {
+        const x1 = n.x * cosY - n.z * sinY;
+        const z1 = n.z * cosY + n.x * sinY;
+        const y2 = n.y * cosX - z1 * sinX;
+        const z2 = z1 * cosX + n.y * sinX;
+        const scale = 1.0 / (2.4 - z2 * 0.55);
+        return {
+          px: cx + x1 * R * 1.95 * scale,
+          py: cy + y2 * R * 1.95 * scale,
+          z: z2,
+          isWarm: n.isWarm,
+        };
+      });
 
+      // Draw Constellation Connections
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
-      for (let i = 0; i < totalRays; i++) {
-        const a = -Math.PI * 0.5 + (i * Math.PI * 2) / totalRays;
-        const pulse = 0.85 + 0.15 * Math.sin(angle * 3.0 + i * 0.45);
-        const rEnd = innerR + (outerR - innerR) * (0.76 + 0.22 * pulse);
-
-        let col = 'rgba(45, 212, 191, 0.72)';
-        if (i >= sharpCount && i < sharpCount + softCount) {
-          col = 'rgba(251, 146, 60, 0.78)';
-        } else if (i >= sharpCount + softCount) {
-          col = 'rgba(244, 63, 94, 0.82)';
+      for (let i = 0; i < projected.length; i++) {
+        for (let j = i + 1; j < projected.length; j++) {
+          const dx = projected[i].px - projected[j].px;
+          const dy = projected[i].py - projected[j].py;
+          const dist = Math.hypot(dx, dy);
+          if (dist < R * 0.62) {
+            const depthAlpha = Math.max(0.05, ((projected[i].z + projected[j].z) * 0.25 + 0.45));
+            const alpha = (1 - dist / (R * 0.62)) * 0.36 * depthAlpha;
+            ctx.strokeStyle =
+              projected[i].isWarm || projected[j].isWarm
+                ? `rgba(251, 146, 60, ${alpha})`
+                : `rgba(45, 212, 191, ${alpha})`;
+            ctx.lineWidth = 0.85;
+            ctx.beginPath();
+            ctx.moveTo(projected[i].px, projected[i].py);
+            ctx.lineTo(projected[j].px, projected[j].py);
+            ctx.stroke();
+          }
         }
-
-        ctx.strokeStyle = col;
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(cx + Math.cos(a) * (innerR + 2), cy + Math.sin(a) * (innerR + 2));
-        ctx.lineTo(cx + Math.cos(a) * rEnd, cy + Math.sin(a) * rEnd);
-        ctx.stroke();
       }
 
-      // Sweeping Radar Beam
-      const beamA = -Math.PI * 0.5 + angle;
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
-      ctx.lineWidth = 1.6;
+      // Draw 3D Sphere Nodes
+      for (const p of projected) {
+        const depth = Math.max(0.2, (p.z + 1.0) * 0.5);
+        ctx.fillStyle = p.isWarm
+          ? `rgba(251, 146, 60, ${0.35 + depth * 0.6})`
+          : `rgba(56, 189, 248, ${0.30 + depth * 0.65})`;
+        ctx.beginPath();
+        ctx.arc(p.px, p.py, 1.1 + depth * 1.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Subtle Outer Orbital Precision Ring
+      ctx.strokeStyle = 'rgba(45, 212, 191, 0.28)';
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.moveTo(cx + Math.cos(beamA) * innerR, cy + Math.sin(beamA) * innerR);
-      ctx.lineTo(cx + Math.cos(beamA) * outerR, cy + Math.sin(beamA) * outerR);
+      ctx.arc(cx, cy, R * 1.05, 0, Math.PI * 2);
       ctx.stroke();
       ctx.restore();
 
-      // Inner Black Optical Pupil
-      ctx.fillStyle = '#04070f';
+      // Center Frosted Core Pill
+      const coreR = R * 0.44;
+      ctx.fillStyle = 'rgba(4, 8, 18, 0.82)';
       ctx.beginPath();
-      ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+      ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(45, 212, 191, 0.55)';
-      ctx.lineWidth = 1.4;
+      ctx.strokeStyle = 'rgba(45, 212, 191, 0.48)';
+      ctx.lineWidth = 1.2;
       ctx.stroke();
 
-      // Center Percentage Typography
       const mainPct = fScore !== null ? fScore : pS;
       ctx.fillStyle = '#f8fafc';
-      ctx.font = '800 18px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.font = '800 16px -apple-system, BlinkMacSystemFont, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(`${mainPct}%`, cx, cy - 4);
 
       ctx.fillStyle = '#2dd4bf';
-      ctx.font = '700 8.5px -apple-system, BlinkMacSystemFont, sans-serif';
-      ctx.fillText(fScore !== null ? 'FOCUS LOCK' : 'SHARP RATE', cx, cy + 12);
+      ctx.font = '700 8px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.fillText(fScore !== null ? 'NEURAL LOCK' : 'SHARP RATE', cx, cy + 11);
 
       ctx.restore();
       animId = requestAnimationFrame(draw);
@@ -705,7 +725,7 @@ function RadialIrisRadarWidget({
         borderRadius: 12,
         overflow: 'hidden',
         border: '1px solid rgba(45, 212, 191, 0.24)',
-        background: '#050811',
+        background: '#04070f',
         position: 'relative',
       }}
     >
@@ -2403,16 +2423,18 @@ export default function App() {
                       )}
                     </div>
 
-                    {/* RIGHT WIDE PREVIEW GRID (4x3 = 12 Photos Directly Inside Inspector Stage!) */}
+                    {/* RIGHT WIDE PREVIEW GRID (Exact 2-Row Fit + Scrollable inside frame!) */}
                     <div
                       className="bento-preview-stage"
                       style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        justifyContent: effectiveItems.length === 0 ? 'center' : 'space-between',
+                        justifyContent: effectiveItems.length === 0 ? 'center' : 'flex-start',
                         alignItems: effectiveItems.length === 0 ? 'center' : 'stretch',
                         padding: 10,
                         cursor: 'default',
+                        overflowY: effectiveItems.length > 0 ? 'auto' : 'hidden',
+                        overflowX: 'hidden',
                       }}
                     >
                       {effectiveItems.length > 0 ? (
@@ -2420,13 +2442,13 @@ export default function App() {
                           style={{
                             display: 'grid',
                             gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-                            gridTemplateRows: 'repeat(3, minmax(0, 1fr))',
+                            gridAutoRows: 'calc(50% - 5px)',
                             gap: 10,
                             width: '100%',
                             height: '100%',
                           }}
                         >
-                          {effectiveItems.slice(0, 12).map((item) => {
+                          {effectiveItems.slice(0, 120).map((item) => {
                             const st = item.analysis?.status || 'blurry';
                             const score = item.analysis?.score ?? 0;
                             const isSel = selectedItem?.id === item.id;
