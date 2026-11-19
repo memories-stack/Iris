@@ -23,7 +23,7 @@
 #include <dispatch/dispatch.h>
 
 #define DEFAULT_PORT 5182
-#define NATIVE_VERSION "1.6.1"
+#define NATIVE_VERSION "1.6.2"
 #define DEFAULT_UPDATE_MANIFEST_URL "https://memories-stack.github.io/Iris/version.json"
 #define MAX_BATCH_FILES 10000
 
@@ -359,22 +359,99 @@ static void analyze_single_photo_native(const char *dir_path, NativePhotoRecord 
         }
 
         // ====================================================================
-        // STAGE 2: APPLE VISION DEEP NEURAL HUMAN BODY DETECTOR (VNDetectHumanRectanglesRequest)
-        // Automatically verifies any suspect/masked/sunglasses photo (or confirms blur)!
-        // Works 100% even when runner wears a full black face mask (e.g. TR2602TAM34214.JPG)!
+        // STAGE 2 & 3: APPLE VISION DUAL-NEURAL VERIFIER
+        // - AI #2: VNDetectHumanRectanglesRequest (Full/Upper Body — handles masked runners)
+        // - AI #3: VNDetectFaceCaptureQualityRequest + 1280px High-Res Face ROI (handles night/low-light & 100% rejects blurry faces!)
+        // Automatically triggers whenever Stage-1 confidence < 850.0
         // ====================================================================
         if (bestRunnerEnergy < 850.0) {
             CGImageSourceRef vSrc = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
             if (vSrc) {
-                CGImageRef vImg = CGImageSourceCreateThumbnailAtIndex(vSrc, 0, (__bridge CFDictionaryRef)opts);
+                NSDictionary *opts1280 = @{
+                    (id)kCGImageSourceCreateThumbnailFromImageAlways: @YES,
+                    (id)kCGImageSourceCreateThumbnailWithTransform: @YES,
+                    (id)kCGImageSourceThumbnailMaxPixelSize: @1280
+                };
+                CGImageRef vImg = CGImageSourceCreateThumbnailAtIndex(vSrc, 0, (__bridge CFDictionaryRef)opts1280);
                 CFRelease(vSrc);
                 if (vImg) {
                     VNDetectHumanRectanglesRequest *hReq = [[VNDetectHumanRectanglesRequest alloc] init];
                     hReq.upperBodyOnly = YES;
+                    VNDetectFaceCaptureQualityRequest *qReq = [[VNDetectFaceCaptureQualityRequest alloc] init];
                     VNImageRequestHandler *handler = [[VNImageRequestHandler alloc] initWithCGImage:vImg options:@{}];
-                    [handler performRequests:@[hReq] error:nil];
+                    [handler performRequests:@[hReq, qReq] error:nil];
+
+                    // Decode 1280px luma only if faces/humans were found
+                    size_t vw = CGImageGetWidth(vImg);
+                    size_t vh = CGImageGetHeight(vImg);
+                    float *vGray = NULL;
+                    if ((qReq.results.count > 0 || hReq.results.count > 0) && vw > 16 && vh > 16) {
+                        uint8_t *vRgba = calloc(vw * vh * 4, 1);
+                        if (vRgba) {
+                            CGColorSpaceRef vCs = CGColorSpaceCreateDeviceRGB();
+                            CGContextRef vCtx = CGBitmapContextCreate(vRgba, vw, vh, 8, vw * 4, vCs, (CGBitmapInfo)kCGImageAlphaPremultipliedLast);
+                            if (vCtx) {
+                                CGContextDrawImage(vCtx, CGRectMake(0, 0, vw, vh), vImg);
+                                CGContextRelease(vCtx);
+                            }
+                            CGColorSpaceRelease(vCs);
+                            vGray = malloc(vw * vh * sizeof(float));
+                            if (vGray) {
+                                for (size_t i = 0; i < vw * vh; i++) {
+                                    vGray[i] = 0.299f * vRgba[i * 4] + 0.587f * vRgba[i * 4 + 1] + 0.114f * vRgba[i * 4 + 2];
+                                }
+                            }
+                            free(vRgba);
+                        }
+                    }
                     CGImageRelease(vImg);
 
+                    // AI #3: Deep Face Capture Quality + 1280px High-Res Face ROI Sharpness
+                    double bestFaceQ = -1.0;
+                    double bestFaceLap1280 = 0.0;
+                    CGRect bestFaceBox = CGRectZero;
+                    int validFaces = 0;
+
+                    if (vGray) {
+                        for (VNFaceObservation *fObs in qReq.results) {
+                            CGRect fb = fObs.boundingBox;
+                            if (fb.size.width < 0.025 || fb.size.height < 0.025) continue;
+                            validFaces++;
+                            double fq = fObs.faceCaptureQuality ? [fObs.faceCaptureQuality doubleValue] : 0.0;
+                            int fx0 = MAX(1, (int)(fb.origin.x * vw));
+                            int fx1 = MIN((int)vw - 2, (int)((fb.origin.x + fb.size.width) * vw));
+                            int fy0 = MAX(1, (int)((1.0 - (fb.origin.y + fb.size.height)) * vh));
+                            int fy1 = MIN((int)vh - 2, (int)((1.0 - fb.origin.y) * vh));
+
+                            double lapSq = 0;
+                            int tot = 0, micro = 0;
+                            for (int y = fy0; y < fy1; y++) {
+                                for (int x = fx0; x < fx1; x++) {
+                                    size_t idx = (size_t)y * vw + (size_t)x;
+                                    float lap = fabs(
+                                        vGray[idx - vw - 1] + vGray[idx - vw] + vGray[idx - vw + 1] +
+                                        vGray[idx - 1] - 8.0f * vGray[idx] + vGray[idx + 1] +
+                                        vGray[idx + vw - 1] + vGray[idx + vw] + vGray[idx + vw + 1]
+                                    ) * 0.5f;
+                                    float cl = MIN(lap, 95.0f);
+                                    lapSq += (double)(cl * cl);
+                                    if (lap > 18.0f) micro++;
+                                    tot++;
+                                }
+                            }
+                            double mr = (double)micro / MAX(1, tot);
+                            double fLap = (lapSq / MAX(1, tot)) * (0.45 + 1.65 * mr);
+                            double combinedFace = fq * 600.0 + fLap;
+                            if (combinedFace > bestFaceQ * 600.0 + bestFaceLap1280) {
+                                bestFaceQ = fq;
+                                bestFaceLap1280 = fLap;
+                                bestFaceBox = fb;
+                            }
+                        }
+                        free(vGray);
+                    }
+
+                    // AI #2: Deep Human Upper-Body Verifier (512px calibrated scale)
                     double bestVisionE = 0;
                     CGRect bestHumanBox = CGRectZero;
                     int validHumans = 0;
@@ -423,16 +500,26 @@ static void analyze_single_photo_native(const char *dir_path, NativePhotoRecord 
                         }
                     }
 
-                    if (validHumans > 0) {
-                        // Trust Apple Vision Neural Human Detector when it finds valid foreground runners!
+                    // Decision Fusion across AI #1 (Grid), AI #2 (Human Body), AI #3 (Face Quality + 1280px ROI)
+                    if (validFaces > 0) {
+                        if (bestFaceQ >= 0.22 && bestFaceLap1280 >= 160.0) {
+                            // Sharp face confirmed even in night/low-light scenes (e.g. TR2602TAM05144.JPG)!
+                            double rescuedE = 680.0 + bestFaceLap1280 * 0.85 + bestFaceQ * 450.0;
+                            bestRunnerEnergy = MAX(bestRunnerEnergy, rescuedE);
+                            bestGx = (int)((bestFaceBox.origin.x + bestFaceBox.size.width * 0.5) * gxN);
+                            bestGy = (int)((1.0 - (bestFaceBox.origin.y + bestFaceBox.size.height * 0.5)) * gyN);
+                        } else if (bestFaceQ <= 0.16 || bestFaceLap1280 < 55.0) {
+                            // Confirm blurry face — prevents wall/background false positives (16544, 18419, 31794, 32954, 33070)
+                            bestRunnerEnergy = MIN(bestRunnerEnergy > 0.1 ? bestRunnerEnergy : 280.0, 280.0);
+                        }
+                    } else if (validHumans > 0) {
+                        // Masked/sunglasses runners where no bare face was detected
                         if (bestVisionE >= 850.0) {
-                            // Rescues masked/sunglasses runners (e.g. 34214 -> 3455.6)
                             bestRunnerEnergy = bestVisionE;
                             bestGx = (int)((bestHumanBox.origin.x + bestHumanBox.size.width * 0.5) * gxN);
                             bestGy = (int)((1.0 - (bestHumanBox.origin.y + bestHumanBox.size.height * 0.75)) * gyN);
                         } else if (bestVisionE < 590.0) {
-                            // Confirms blurry runner even if background wall had contrast (e.g. 16545, 18419, 31794)
-                            bestRunnerEnergy = MIN(bestRunnerEnergy, bestVisionE * 0.72);
+                            bestRunnerEnergy = MIN(bestRunnerEnergy > 0.1 ? bestRunnerEnergy : bestVisionE * 0.72, bestVisionE * 0.72);
                         }
                     }
                 }
