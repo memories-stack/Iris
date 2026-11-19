@@ -19,7 +19,7 @@ type ThemeMode = 'dark' | 'light';
 type FilterTab = 'all' | 'sharp' | 'soft' | 'blurry';
 type StrictnessPreset = 'relaxed' | 'standard' | 'strict';
 
-const APP_VERSION = '1.6.0';
+const APP_VERSION = '1.6.1';
 const DEFAULT_UPDATE_MANIFEST_URL = 'https://memories-stack.github.io/Iris/version.json';
 
 interface RemoteUpdateManifest {
@@ -285,7 +285,7 @@ function IrisLogo() {
   );
 }
 
-// 4. Ultra-Smooth 120fps Aurora Silk-Wave Visualizer (Never resets phase on prop updates — Zero Stutter!)
+// 4. Ultra-Smooth 120fps Tri-Stream Fiber-Optic Neural Matrix Visualizer (Zero Stutter, No Cheesy Badge!)
 function MiniNeuralCornerWidget({
   isScanning,
   speed,
@@ -310,29 +310,33 @@ function MiniNeuralCornerWidget({
     let phase = 0;
     let smoothMult = 0.85;
 
-    // Soft floating light particles (continuous delta-time, never resets!)
-    const orbs = Array.from({ length: 18 }, (_, i) => ({
-      x: ((i * 61 + 7) % 100) / 100,
-      y: 0.2 + ((i * 43) % 65) / 100,
-      r: 1.2 + (i % 4) * 0.9,
-      alpha: 0.18 + (i % 4) * 0.12,
-      vx: (i % 2 === 0 ? 1 : -1) * (0.015 + (i % 3) * 0.008),
-      vy: -0.012 - (i % 3) * 0.006,
-      isTeal: i % 2 === 0,
-    }));
+    // 3 Fiber-Optic Source Clusters (Cyan-Teal, Magenta-Pink, Warm Amber-Gold)
+    const streams = [
+      { ySrcRatio: 0.25, r: 56, g: 189, b: 248, hex: '#38bdf8' },
+      { ySrcRatio: 0.50, r: 236, g: 72, b: 153, hex: '#ec4899' },
+      { ySrcRatio: 0.75, r: 251, g: 191, b: 36, hex: '#fbbf24' },
+    ];
+
+    // Pre-build 24 smooth bezier fiber paths fanning out from the 3 left emitters to the right matrix
+    const fibers = Array.from({ length: 24 }, (_, idx) => {
+      const sIdx = idx % 3;
+      const lane = idx / 23; // 0..1 across right matrix height
+      const phaseOffset = (idx * 0.47) % (Math.PI * 2);
+      const pulseSpeed = 0.42 + (idx % 5) * 0.09;
+      return { sIdx, lane, phaseOffset, pulseSpeed };
+    });
 
     const draw = (now: number) => {
       const dt = Math.min(0.05, Math.max(0.001, (now - lastTime) * 0.001));
       lastTime = now;
 
-      // Smoothly interpolate speed multiplier so starting/stopping scan never jumps
-      const targetMult = isScanningRef.current ? 1.85 : 0.75;
+      const targetMult = isScanningRef.current ? 2.1 : 0.82;
       smoothMult += (targetMult - smoothMult) * Math.min(1, dt * 4.0);
       phase += dt * smoothMult;
 
       const dpr = Math.min(2, window.devicePixelRatio || 2);
       const cssW = canvas.clientWidth || 340;
-      const cssH = 92;
+      const cssH = 96;
       if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
         canvas.width = Math.round(cssW * dpr);
         canvas.height = Math.round(cssH * dpr);
@@ -343,104 +347,145 @@ function MiniNeuralCornerWidget({
       const w = cssW;
       const h = cssH;
 
-      // 1. Deep Obsidian Glass Background
+      // 1. Deep Midnight Navy Background
       const bgGrad = ctx.createLinearGradient(0, 0, w, h);
-      bgGrad.addColorStop(0, '#060912');
-      bgGrad.addColorStop(0.5, '#0b101d');
-      bgGrad.addColorStop(1, '#120b16');
+      bgGrad.addColorStop(0, '#040814');
+      bgGrad.addColorStop(0.5, '#071024');
+      bgGrad.addColorStop(1, '#050917');
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, w, h);
 
-      // 2. Soft Ambient Glow Orbs
+      const srcX = w * 0.16;
+      const matStartX = w * 0.46;
+
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
-      for (const p of orbs) {
-        p.x = (((p.x + p.vx * dt) % 1) + 1) % 1;
-        p.y = (((p.y + p.vy * dt) % 1) + 1) % 1;
-        ctx.fillStyle = p.isTeal
-          ? `rgba(45, 212, 191, ${p.alpha})`
-          : `rgba(251, 146, 60, ${p.alpha})`;
+
+      // 2. Incoming Laser Input Lines + Glowing Emitter Cores on the Left
+      streams.forEach((st, sIdx) => {
+        const sy = h * st.ySrcRatio + Math.sin(phase * 1.1 + sIdx * 2.1) * 1.8;
+
+        // Input beam from left edge
+        const beamGrad = ctx.createLinearGradient(0, sy, srcX, sy);
+        beamGrad.addColorStop(0, `rgba(${st.r}, ${st.g}, ${st.b}, 0.05)`);
+        beamGrad.addColorStop(0.7, `rgba(${st.r}, ${st.g}, ${st.b}, 0.55)`);
+        beamGrad.addColorStop(1, `rgba(255, 255, 255, 0.95)`);
+        ctx.strokeStyle = beamGrad;
+        ctx.lineWidth = 1.6;
         ctx.beginPath();
-        ctx.arc(p.x * w, p.y * h, p.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // 3. 3-Layer Silky Aurora Sine-Wave Ribbons (Mint-Cyan, Electric Blue, Warm Coral)
-      const ribbons = [
-        {
-          colorTop: 'rgba(56, 178, 154, 0.42)',
-          colorBot: 'rgba(56, 178, 154, 0.0)',
-          stroke: 'rgba(45, 212, 191, 0.85)',
-          freq1: 0.014,
-          freq2: 0.026,
-          amp1: 12,
-          amp2: 6,
-          speed1: 1.4,
-          speed2: -0.9,
-          yBase: h * 0.58,
-          lw: 2.0,
-        },
-        {
-          colorTop: 'rgba(240, 120, 56, 0.36)',
-          colorBot: 'rgba(240, 120, 56, 0.0)',
-          stroke: 'rgba(251, 146, 60, 0.82)',
-          freq1: 0.016,
-          freq2: 0.022,
-          amp1: 11,
-          amp2: 7,
-          speed1: -1.1,
-          speed2: 1.2,
-          yBase: h * 0.63,
-          lw: 1.8,
-        },
-        {
-          colorTop: 'rgba(56, 189, 248, 0.25)',
-          colorBot: 'rgba(56, 189, 248, 0.0)',
-          stroke: 'rgba(125, 211, 252, 0.65)',
-          freq1: 0.011,
-          freq2: 0.03,
-          amp1: 9,
-          amp2: 5,
-          speed1: 0.95,
-          speed2: 1.5,
-          yBase: h * 0.54,
-          lw: 1.4,
-        },
-      ];
-
-      for (const rb of ribbons) {
-        const fillGrad = ctx.createLinearGradient(0, rb.yBase - 18, 0, h);
-        fillGrad.addColorStop(0, rb.colorTop);
-        fillGrad.addColorStop(1, rb.colorBot);
-
-        ctx.beginPath();
-        ctx.moveTo(0, h);
-        for (let x = 0; x <= w; x += 4) {
-          const y =
-            rb.yBase +
-            Math.sin(x * rb.freq1 + phase * rb.speed1) * rb.amp1 +
-            Math.cos(x * rb.freq2 + phase * rb.speed2) * rb.amp2;
-          ctx.lineTo(x, y);
-        }
-        ctx.lineTo(w, h);
-        ctx.closePath();
-        ctx.fillStyle = fillGrad;
-        ctx.fill();
-
-        // Crisp glowing wave crest stroke
-        ctx.beginPath();
-        for (let x = 0; x <= w; x += 3) {
-          const y =
-            rb.yBase +
-            Math.sin(x * rb.freq1 + phase * rb.speed1) * rb.amp1 +
-            Math.cos(x * rb.freq2 + phase * rb.speed2) * rb.amp2;
-          if (x === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.strokeStyle = rb.stroke;
-        ctx.lineWidth = rb.lw;
+        ctx.moveTo(6, sy);
+        ctx.lineTo(srcX, sy);
         ctx.stroke();
+
+        // Traveling input data dots along the left beam
+        for (let d = 0; d < 4; d++) {
+          const prog = ((phase * 0.9 + d * 0.25 + sIdx * 0.15) % 1);
+          const dx = 6 + prog * (srcX - 8);
+          ctx.fillStyle = `rgba(${st.r}, ${st.g}, ${st.b}, ${0.3 + prog * 0.6})`;
+          ctx.beginPath();
+          ctx.arc(dx, sy, 1.1, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Outer emitter halo
+        const halo = ctx.createRadialGradient(srcX, sy, 0.5, srcX, sy, 11);
+        halo.addColorStop(0, `rgba(255, 255, 255, 0.95)`);
+        halo.addColorStop(0.35, `rgba(${st.r}, ${st.g}, ${st.b}, 0.65)`);
+        halo.addColorStop(1, `rgba(${st.r}, ${st.g}, ${st.b}, 0)`);
+        ctx.fillStyle = halo;
+        ctx.beginPath();
+        ctx.arc(srcX, sy, 11, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // 3. Fanning Bezier Fiber-Optic Filaments + Traveling Photon Pulses
+      for (const fb of fibers) {
+        const st = streams[fb.sIdx];
+        const sy = h * st.ySrcRatio + Math.sin(phase * 1.1 + fb.sIdx * 2.1) * 1.8;
+        const ty = 11 + fb.lane * (h - 22) + Math.sin(phase * 1.4 + fb.phaseOffset) * 1.5;
+
+        const cp1x = srcX + (matStartX - srcX) * 0.42;
+        const cp1y = sy;
+        const cp2x = srcX + (matStartX - srcX) * 0.62;
+        const cp2y = ty;
+
+        ctx.strokeStyle = `rgba(${st.r}, ${st.g}, ${st.b}, 0.26)`;
+        ctx.lineWidth = 1.05;
+        ctx.beginPath();
+        ctx.moveTo(srcX, sy);
+        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, matStartX, ty);
+        ctx.stroke();
+
+        // Photon pulse gliding along cubic bezier curve
+        const t = (phase * fb.pulseSpeed + fb.phaseOffset) % 1;
+        const mt = 1 - t;
+        const px =
+          mt * mt * mt * srcX +
+          3 * mt * mt * t * cp1x +
+          3 * mt * t * t * cp2x +
+          t * t * t * matStartX;
+        const py =
+          mt * mt * mt * sy +
+          3 * mt * mt * t * cp1y +
+          3 * mt * t * t * cp2y +
+          t * t * t * ty;
+
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.45 + 0.5 * Math.sin(t * Math.PI)})`;
+        ctx.beginPath();
+        ctx.arc(px, py, 1.35, 0, Math.PI * 2);
+        ctx.fill();
       }
+
+      // 4. Right-Side Neural Binary & Dot Matrix Stream (Flowing smoothly rightwards)
+      const cols = 20;
+      const rows = 9;
+      const matW = w - matStartX - 10;
+      const colStep = matW / cols;
+      const rowStep = (h - 20) / (rows - 1);
+
+      for (let r = 0; r < rows; r++) {
+        const y = 10 + r * rowStep;
+        for (let c = 0; c < cols; c++) {
+          const x = matStartX + c * colStep;
+          const fadeRight = Math.max(0.08, 1 - (c / cols) * 0.85);
+          const wave =
+            Math.sin(c * 0.48 - phase * 3.2 + r * 0.75) * 0.5 +
+            Math.cos(r * 0.9 - phase * 2.1 + c * 0.3) * 0.5;
+
+          const colorIdx = (r + c) % 3;
+          const st =
+            c < 3
+              ? streams[(r + c) % 3]
+              : colorIdx === 0
+              ? streams[0]
+              : colorIdx === 1
+              ? { r: 56, g: 189, b: 248 }
+              : streams[1];
+
+          const alpha = Math.max(0.08, (0.35 + 0.65 * Math.max(0, wave)) * fadeRight);
+
+          if (c === 0) {
+            // Bright entry nodes where fiber cables dock into the matrix
+            ctx.fillStyle = `rgba(${st.r}, ${st.g}, ${st.b}, ${Math.min(1, alpha * 1.4)})`;
+            ctx.beginPath();
+            ctx.arc(x, y, 1.9, 0, Math.PI * 2);
+            ctx.fill();
+          } else if ((c + r) % 2 === 0) {
+            // Crisp glowing matrix dots & micro-capsules
+            ctx.fillStyle = `rgba(${st.r}, ${st.g}, ${st.b}, ${alpha})`;
+            const pillW = wave > 0.35 ? 4.2 : 2.0;
+            ctx.beginPath();
+            ctx.roundRect(x - pillW * 0.5, y - 1.1, pillW, 2.2, 1.1);
+            ctx.fill();
+          } else {
+            ctx.fillStyle = `rgba(56, 189, 248, ${alpha * 0.82})`;
+            ctx.beginPath();
+            ctx.arc(x, y, 1.15, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
       ctx.restore();
       ctx.restore();
 
@@ -456,50 +501,52 @@ function MiniNeuralCornerWidget({
       style={{
         borderRadius: 14,
         overflow: 'hidden',
-        border: '1px solid rgba(56, 178, 154, 0.25)',
-        background: '#060912',
+        border: '1px solid rgba(56, 189, 248, 0.24)',
+        background: '#040814',
         position: 'relative',
       }}
     >
-      <canvas ref={canvasRef} style={{ width: '100%', height: 92, display: 'block' }} />
-      <div
-        style={{
-          position: 'absolute',
-          top: 8,
-          left: 12,
-          right: 12,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          pointerEvents: 'none',
-        }}
-      >
-        <span
+      <canvas ref={canvasRef} style={{ width: '100%', height: 96, display: 'block' }} />
+      {(isScanning || total > 0) && (
+        <div
           style={{
-            fontSize: 10.5,
-            fontWeight: 700,
-            color: '#94a3b8',
-            letterSpacing: '0.03em',
+            position: 'absolute',
+            top: 7,
+            left: 11,
+            right: 11,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            pointerEvents: 'none',
           }}
         >
-          {total > 0 ? `วิเคราะห์แล้ว ${total.toLocaleString()} ภาพ` : 'Apple Neural Engine'}
-        </span>
-        <span
-          style={{
-            fontSize: 10.5,
-            fontWeight: 700,
-            color: isScanning ? '#fb923c' : '#2dd4bf',
-            background: 'rgba(6, 9, 18, 0.78)',
-            padding: '3px 10px',
-            borderRadius: 999,
-            border: isScanning
-              ? '1px solid rgba(251, 146, 60, 0.4)'
-              : '1px solid rgba(45, 212, 191, 0.35)',
-          }}
-        >
-          {isScanning ? `⚡ กำลังสแกน ${speed} รูป/วินาที` : '🧠 AI พร้อมทำงาน'}
-        </span>
-      </div>
+          <span
+            style={{
+              fontSize: 10.5,
+              fontWeight: 700,
+              color: 'rgba(148, 163, 184, 0.88)',
+              letterSpacing: '0.02em',
+            }}
+          >
+            {total > 0 ? `${total.toLocaleString()} ภาพ` : ''}
+          </span>
+          {isScanning && (
+            <span
+              style={{
+                fontSize: 10.5,
+                fontWeight: 700,
+                color: '#38bdf8',
+                background: 'rgba(4, 8, 20, 0.78)',
+                padding: '2px 9px',
+                borderRadius: 999,
+                border: '1px solid rgba(56, 189, 248, 0.38)',
+              }}
+            >
+              ⚡ {speed} รูป/วิ
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

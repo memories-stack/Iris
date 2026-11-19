@@ -23,7 +23,7 @@
 #include <dispatch/dispatch.h>
 
 #define DEFAULT_PORT 5182
-#define NATIVE_VERSION "1.6.0"
+#define NATIVE_VERSION "1.6.1"
 #define DEFAULT_UPDATE_MANIFEST_URL "https://memories-stack.github.io/Iris/version.json"
 #define MAX_BATCH_FILES 10000
 

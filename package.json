@@ -1,8 +1,8 @@
 {
   "name": "iris-studio",
   "private": true,
-  "version": "1.6.0",
-  "releaseNotes": "Iris v1.6.0 — 2-Stage Hybrid AI Eye & Human Body Focus Culling + Race Bib OCR + Blurry Quick-Preview & Trash + OTA Auto-Update",
+  "version": "1.6.1",
+  "releaseNotes": "Iris v1.6.1 — Tri-Stream Fiber-Optic Neural Matrix Visualizer + Clean Badge-Free HUD + OTA Auto-Update",
   "description": "Iris — AI Still Photo Blur & Eye Focus Culling Studio for macOS",
   "type": "module",
   "scripts": {
