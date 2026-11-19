@@ -1,8 +1,8 @@
 {
   "name": "iris-studio",
   "private": true,
-  "version": "1.7.7",
-  "releaseNotes": "Iris v1.7.7 — Clean 2-Row Scrollable Photo Grid + Centered 3D Neural Constellation Sphere",
+  "version": "1.7.8",
+  "releaseNotes": "Iris v1.7.8 — Restore natural 3:2 card proportions inside scrollable 4-column photo grid",
   "description": "Iris — AI Still Photo Blur & Eye Focus Culling Studio for macOS",
   "type": "module",
   "scripts": {

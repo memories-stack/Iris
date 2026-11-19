@@ -19,7 +19,7 @@ type ThemeMode = 'dark' | 'light';
 type FilterTab = 'all' | 'sharp' | 'soft' | 'blurry';
 type StrictnessPreset = 'relaxed' | 'standard' | 'strict';
 
-const APP_VERSION = '1.7.7';
+const APP_VERSION = '1.7.8';
 const DEFAULT_UPDATE_MANIFEST_URL = 'https://memories-stack.github.io/Iris/version.json';
 
 interface RemoteUpdateManifest {
@@ -2442,10 +2442,9 @@ export default function App() {
                           style={{
                             display: 'grid',
                             gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-                            gridAutoRows: 'calc(50% - 5px)',
                             gap: 10,
                             width: '100%',
-                            height: '100%',
+                            alignContent: 'start',
                           }}
                         >
                           {effectiveItems.slice(0, 120).map((item) => {
@@ -2456,7 +2455,6 @@ export default function App() {
                               <div
                                 key={item.id}
                                 className={`photo-card ${isSel ? 'selected' : ''}`}
-                                style={{ height: '100%', minHeight: 0 }}
                                 onClick={() => setSelectedId(item.id)}
                                 onDoubleClick={() => {
                                   setSelectedId(item.id);
@@ -2464,7 +2462,7 @@ export default function App() {
                                 }}
                                 title="คลิกเพื่อดูข้อมูล AI ด้านซ้าย • ดับเบิลคลิกเพื่อซูม 100% ใน Pro Studio"
                               >
-                                <div className="thumb-wrap" style={{ flex: 1, aspectRatio: 'auto', minHeight: 0 }}>
+                                <div className="thumb-wrap">
                                   <img
                                     src={item.rescuedUrl || item.thumbUrl}
                                     alt={item.name}
@@ -2479,7 +2477,7 @@ export default function App() {
                                       : `เบลอ ${score}%`}
                                   </div>
                                 </div>
-                                <div className="photo-card-info" style={{ flexShrink: 0 }}>
+                                <div className="photo-card-info">
                                   <div className="photo-name">{item.name}</div>
                                 </div>
                               </div>
