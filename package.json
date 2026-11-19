@@ -1,8 +1,8 @@
 {
   "name": "iris-studio",
   "private": true,
-  "version": "1.7.9",
-  "releaseNotes": "Iris v1.7.9 — Always-visible sleek scrollbar for dashboard photo grid + crisp 3D Neural Sphere rendering",
+  "version": "1.8.0",
+  "releaseNotes": "Iris v1.8.0 — Strict CSS Grid height lock (scrollbar inside photo grid only + 3D Neural Sphere visible in left pane)",
   "description": "Iris — AI Still Photo Blur & Eye Focus Culling Studio for macOS",
   "type": "module",
   "scripts": {

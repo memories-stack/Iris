@@ -259,10 +259,11 @@ body, #root {
    ============================================================================ */
 .dashboard-scroll {
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
   padding: 14px 20px 14px;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .dashboard-shell {
@@ -273,6 +274,7 @@ body, #root {
   flex-direction: column;
   gap: 14px;
   flex: 1;
+  height: 100%;
   min-height: 0;
 }
 
@@ -1026,6 +1028,8 @@ body, #root {
   flex-direction: column;
   gap: 12px;
   min-width: 0;
+  min-height: 0;
+  height: 100%;
 }
 
 .bento-right-col {
@@ -1033,6 +1037,8 @@ body, #root {
   flex-direction: column;
   gap: 12px;
   min-width: 0;
+  min-height: 0;
+  height: 100%;
 }
 
 .bento-kpi-grid {
@@ -1099,6 +1105,8 @@ body, #root {
   flex-direction: column;
   gap: 12px;
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .bento-hero-head {
@@ -1134,9 +1142,11 @@ body, #root {
 .bento-hero-split {
   display: grid;
   grid-template-columns: 265px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   gap: 14px;
   flex: 1;
   min-height: 0;
+  overflow: hidden;
 }
 
 .bento-preview-stage {

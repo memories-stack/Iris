@@ -19,7 +19,7 @@ type ThemeMode = 'dark' | 'light';
 type FilterTab = 'all' | 'sharp' | 'soft' | 'blurry';
 type StrictnessPreset = 'relaxed' | 'standard' | 'strict';
 
-const APP_VERSION = '1.7.9';
+const APP_VERSION = '1.8.0';
 const DEFAULT_UPDATE_MANIFEST_URL = 'https://memories-stack.github.io/Iris/version.json';
 
 interface RemoteUpdateManifest {
