@@ -20,7 +20,7 @@ type FilterTab = 'all' | 'sharp' | 'soft' | 'blurry';
 type StrictnessPreset = 'relaxed' | 'standard' | 'strict';
 
 const APP_VERSION = '1.6.0';
-const DEFAULT_UPDATE_MANIFEST_URL = 'https://memories-stack.github.io/iris/version.json';
+const DEFAULT_UPDATE_MANIFEST_URL = 'https://memories-stack.github.io/Iris/version.json';
 
 interface RemoteUpdateManifest {
   version: string;

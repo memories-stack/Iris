@@ -32,15 +32,15 @@ if (fs.existsSync(iconSrc)) {
 }
 
 // 2. Write manifest for OTA auto-update
-const dmgUrl = `https://github.com/memories-stack/iris/releases/download/v${version}/Iris-Installer.dmg`;
-const pkgUrl = `https://github.com/memories-stack/iris/releases/download/v${version}/Iris-Installer.pkg`;
-const zipUrl = `https://github.com/memories-stack/iris/releases/download/v${version}/Iris-Mac.zip`;
+const dmgUrl = `https://github.com/memories-stack/Iris/releases/download/v${version}/Iris-Installer.dmg`;
+const pkgUrl = `https://github.com/memories-stack/Iris/releases/download/v${version}/Iris-Installer.pkg`;
+const zipUrl = `https://github.com/memories-stack/Iris/releases/download/v${version}/Iris-Mac.zip`;
 const manifest = {
   version,
   minNativeVersion: '1.6.0',
   releasedAt: new Date().toISOString(),
   notes,
-  htmlUrl: 'https://memories-stack.github.io/iris/Iris-Offline.html',
+  htmlUrl: 'https://memories-stack.github.io/Iris/Iris-Offline.html',
   dmgUrl,
   pkgUrl,
   zipUrl,
@@ -224,7 +224,7 @@ const landingHtml = `<!doctype html>
 
     <div class="btn-row" style="margin-bottom: 6px;">
       <a class="btn-secondary" style="border-color:rgba(45,212,191,0.4);color:#5eead4;" href="./app.html">🌐 เปิดใช้งานบนเว็บ</a>
-      <a class="btn-secondary" href="https://github.com/memories-stack/iris/releases/latest">🚀 ดู Releases ทั้งหมด</a>
+      <a class="btn-secondary" href="https://github.com/memories-stack/Iris/releases/latest">🚀 ดู Releases ทั้งหมด</a>
     </div>
 
     <div class="features">
