@@ -19,7 +19,7 @@ type ThemeMode = 'dark' | 'light';
 type FilterTab = 'all' | 'sharp' | 'soft' | 'blurry';
 type StrictnessPreset = 'relaxed' | 'standard' | 'strict';
 
-const APP_VERSION = '1.6.2';
+const APP_VERSION = '1.7.0';
 const DEFAULT_UPDATE_MANIFEST_URL = 'https://memories-stack.github.io/Iris/version.json';
 
 interface RemoteUpdateManifest {
@@ -1753,19 +1753,36 @@ export default function App() {
             </div>
           </div>
 
-          {/* Switch between 📊 Dashboard and 🎛️ Pro Studio */}
+          {/* Switch between 📊 Analytics, 🎛️ Pro Studio, and 👁️🗑️ Blurry Review */}
           <div className="ws-mode-switch">
             <button
               className={`ws-mode-btn ${wsMode === 'dashboard' ? 'active' : ''}`}
               onClick={() => setWsMode('dashboard')}
             >
-              📊 Dashboard (แดชบอร์ด)
+              📊 Analytics
             </button>
             <button
               className={`ws-mode-btn ${wsMode === 'studio' ? 'active' : ''}`}
               onClick={() => setWsMode('studio')}
             >
-              🎛️ Pro Studio ({stats.all} รูป)
+              🎛️ Pro Studio ({stats.all})
+            </button>
+            <button
+              className="ws-mode-btn"
+              disabled={stats.blurry === 0}
+              style={{
+                color: stats.blurry > 0 ? '#fda4af' : undefined,
+                opacity: stats.blurry === 0 ? 0.5 : 1,
+              }}
+              onClick={() => {
+                setBlurryPreviewId(blurryItems[0]?.id || null);
+                setUncheckedBlurryIds(new Set());
+                setModalZoom(1.0);
+                setModalPan({ x: 0, y: 0 });
+                setShowBlurryModal(true);
+              }}
+            >
+              👁️🗑️ Blurry Review ({stats.blurry})
             </button>
           </div>
         </div>
@@ -1988,125 +2005,301 @@ export default function App() {
       )}
 
       {/* =====================================================================
-          VIEW 1: 📊 LUXURY INFOGRAPHIC ANALYTICS DASHBOARD (เรียบหรู พรีเมียม)
+          VIEW 1: 📊 NEXT-GEN OBSIDIAN BENTO DASHBOARD (Figma-Designed Edition)
          ===================================================================== */}
       {wsMode === 'dashboard' ? (
         <div className="dashboard-scroll">
           <div className="dashboard-shell">
-            {/* ROW 1: 4 CIRCULAR GRAPH CARDS (CIRCULAR GRAPH - CIRCLES & PERCENTAGES) */}
-            <div className="dash-circular-grid">
-              <div
-                className={`dash-circular-card ${activeTab === 'all' ? 'active-card' : ''}`}
-                onClick={() => {
-                  setActiveTab('all');
-                  if (stats.all > 0) setWsMode('studio');
-                }}
-              >
-                <CircularGraph percent={scanPct} color="#38b29a" />
-                <div className="dc-info">
-                  <span className="dc-tag">BATCH PROGRESS</span>
-                  <span className="dc-title">รูปภาพทั้งหมด</span>
-                  <span className="dc-count">{stats.all}</span>
-                  <span className="dc-sub">
-                    {isScanning
-                      ? `กำลังสแกน ${scanProgress.done}/${scanProgress.total}...`
-                      : 'คลิกเพื่อดูรูปทั้งหมด'}
-                  </span>
-                </div>
-              </div>
+            {/* MAIN 2-COLUMN BENTO LAYOUT */}
+            <div className="bento-main-grid">
+              {/* LEFT COLUMN: 4 KPI CARDS + 3-STAGE HYBRID AI FOCUS INSPECTOR */}
+              <div className="bento-left-col">
+                {/* ROW 1: 4 COMPACT KPI METRIC CARDS */}
+                <div className="bento-kpi-grid">
+                  <div
+                    className={`bento-kpi-card ${activeTab === 'all' ? 'active-card' : ''}`}
+                    style={{ borderColor: 'rgba(56, 189, 248, 0.28)' }}
+                    onClick={() => {
+                      setActiveTab('all');
+                      if (stats.all > 0) setWsMode('studio');
+                    }}
+                  >
+                    <div className="bento-kpi-top">
+                      <span className="bento-kpi-tag">TOTAL SCANNED</span>
+                      <span className="bento-kpi-pct" style={{ color: '#38bdf8' }}>{scanPct}%</span>
+                    </div>
+                    <div className="bento-kpi-val">{stats.all.toLocaleString()}</div>
+                    <div className="bento-kpi-sub">
+                      {isScanning
+                        ? `กำลังสแกน ${scanProgress.speed} รูป/วิ`
+                        : scanProgress.speed > 0
+                        ? `${scanProgress.speed} photos/sec`
+                        : 'Apple Silicon Multi-Core'}
+                    </div>
+                  </div>
 
-              <div
-                className={`dash-circular-card ${activeTab === 'sharp' ? 'active-card' : ''}`}
-                onClick={() => {
-                  setActiveTab('sharp');
-                  if (stats.all > 0) setWsMode('studio');
-                }}
-              >
-                <CircularGraph percent={stats.pctSharp} color="#38b29a" />
-                <div className="dc-info">
-                  <span className="dc-tag">SHARP FOCUS (KEEP)</span>
-                  <span className="dc-title">ภาพคมชัด • เก็บไว้</span>
-                  <span className="dc-count" style={{ color: 'var(--mint)' }}>
-                    {stats.sharp}
-                  </span>
-                  <span className="dc-sub">โฟกัสเข้าตาและตัวแบบคมกริบ</span>
-                </div>
-              </div>
+                  <div
+                    className={`bento-kpi-card ${activeTab === 'sharp' ? 'active-card' : ''}`}
+                    style={{ borderColor: 'rgba(45, 212, 191, 0.30)' }}
+                    onClick={() => {
+                      setActiveTab('sharp');
+                      if (stats.all > 0) setWsMode('studio');
+                    }}
+                  >
+                    <div className="bento-kpi-top">
+                      <span className="bento-kpi-tag">SHARP FOCUS</span>
+                      <span className="bento-kpi-pct" style={{ color: '#2dd4bf' }}>{stats.pctSharp}%</span>
+                    </div>
+                    <div className="bento-kpi-val">{stats.sharp.toLocaleString()}</div>
+                    <div className="bento-kpi-sub">Eye-AF Locked • เก็บไว้</div>
+                  </div>
 
-              <div
-                className={`dash-circular-card ${activeTab === 'soft' ? 'active-card' : ''}`}
-                onClick={() => {
-                  setActiveTab('soft');
-                  if (stats.all > 0) setWsMode('studio');
-                }}
-              >
-                <CircularGraph percent={stats.pctSoft} color="#f07838" />
-                <div className="dc-info">
-                  <span className="dc-tag">SOFT FOCUS (RESCUE)</span>
-                  <span className="dc-title">พอใช้ • กู้ความคมได้</span>
-                  <span className="dc-count" style={{ color: 'var(--coral)' }}>
-                    {stats.soft}
-                  </span>
-                  <span className="dc-sub">หลุดโฟกัสเล็กน้อย กด AI กู้ได้</span>
-                </div>
-              </div>
+                  <div
+                    className={`bento-kpi-card ${activeTab === 'soft' ? 'active-card' : ''}`}
+                    style={{ borderColor: 'rgba(251, 146, 60, 0.30)' }}
+                    onClick={() => {
+                      setActiveTab('soft');
+                      if (stats.all > 0) setWsMode('studio');
+                    }}
+                  >
+                    <div className="bento-kpi-top">
+                      <span className="bento-kpi-tag">SOFT / RESCUE</span>
+                      <span className="bento-kpi-pct" style={{ color: '#fb923c' }}>{stats.pctSoft}%</span>
+                    </div>
+                    <div className="bento-kpi-val">{stats.soft.toLocaleString()}</div>
+                    <div className="bento-kpi-sub">WebGL2 RCAS Ready</div>
+                  </div>
 
-              <div
-                className={`dash-circular-card ${activeTab === 'blurry' ? 'active-card' : ''}`}
-                onClick={() => {
-                  setActiveTab('blurry');
-                  if (stats.all > 0) setWsMode('studio');
-                }}
-              >
-                <CircularGraph percent={stats.pctBlurry} color="#f43f5e" />
-                <div className="dc-info">
-                  <span className="dc-tag">BLURRY / OUT OF FOCUS</span>
-                  <span className="dc-title">ภาพเบลอ • คัดออก</span>
-                  <span className="dc-count" style={{ color: 'var(--danger)' }}>
-                    {stats.blurry}
-                  </span>
-                  <span className="dc-sub">มือสั่น / หลุดโฟกัส / ตาหลับ</span>
-                </div>
-              </div>
-            </div>
-
-            {/* ROW 2: 3-COLUMN LUXURY ANALYTICS PANELS */}
-            <div className="dash-analytics-grid">
-              {/* PANEL 1: CONCENTRIC CIRCLES GRAPH & STRICTNESS MODE */}
-              <div className="dash-panel">
-                <div className="dash-panel-head">
-                  <div>
-                    <div className="dash-panel-title">CONCENTRIC CIRCLES GRAPH</div>
-                    <div className="dash-panel-sub">สัดส่วนคุณภาพความคมชัด 3 ระดับ</div>
+                  <div
+                    className={`bento-kpi-card ${activeTab === 'blurry' ? 'active-card' : ''}`}
+                    style={{ borderColor: 'rgba(244, 63, 94, 0.32)' }}
+                    onClick={() => {
+                      setActiveTab('blurry');
+                      if (stats.all > 0) setWsMode('studio');
+                    }}
+                  >
+                    <div className="bento-kpi-top">
+                      <span className="bento-kpi-tag">BLURRY / REJECT</span>
+                      <span className="bento-kpi-pct" style={{ color: '#f43f5e' }}>{stats.pctBlurry}%</span>
+                    </div>
+                    <div className="bento-kpi-val">{stats.blurry.toLocaleString()}</div>
+                    <div className="bento-kpi-sub">คัดออก / พร้อมลบทิ้ง</div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '6px 0' }}>
-                  <ConcentricCirclesGraph
-                    pctSharp={stats.pctSharp}
-                    pctSoft={stats.pctSoft}
-                    pctBlurry={stats.pctBlurry}
+                {/* ROW 2: 3-STAGE HYBRID AI FOCUS INSPECTOR CARD */}
+                <div className="bento-hero-card">
+                  <div className="bento-hero-head">
+                    <div>
+                      <div className="bento-hero-kicker">3-STAGE HYBRID AI FOCUS INSPECTOR</div>
+                      <div className="bento-hero-title">
+                        {selectedItem
+                          ? `${selectedItem.name} • ${
+                              selectedItem.analysis?.status === 'sharp'
+                                ? 'Eye-AF Sharp Verified'
+                                : selectedItem.analysis?.status === 'soft'
+                                ? 'Soft Focus (Rescuable)'
+                                : 'Motion / Out-of-Focus Detected'
+                            }`
+                          : 'เลือกโฟลเดอร์รูปภาพเพื่อเริ่มวิเคราะห์ด้วย 3-Stage Hybrid AI'}
+                      </div>
+                    </div>
+                    {selectedItem && (
+                      <span
+                        className="bento-score-pill"
+                        style={{
+                          color:
+                            selectedItem.analysis?.status === 'sharp'
+                              ? '#5eead4'
+                              : selectedItem.analysis?.status === 'soft'
+                              ? '#fdba74'
+                              : '#fda4af',
+                          borderColor:
+                            selectedItem.analysis?.status === 'sharp'
+                              ? 'rgba(45, 212, 191, 0.5)'
+                              : selectedItem.analysis?.status === 'soft'
+                              ? 'rgba(251, 146, 60, 0.5)'
+                              : 'rgba(244, 63, 94, 0.5)',
+                          background:
+                            selectedItem.analysis?.status === 'sharp'
+                              ? 'rgba(45, 212, 191, 0.14)'
+                              : selectedItem.analysis?.status === 'soft'
+                              ? 'rgba(251, 146, 60, 0.14)'
+                              : 'rgba(244, 63, 94, 0.14)',
+                        }}
+                      >
+                        {selectedItem.analysis?.score ?? 0}%{' '}
+                        {selectedItem.analysis?.status === 'sharp'
+                          ? 'SHARP'
+                          : selectedItem.analysis?.status === 'soft'
+                          ? 'SOFT'
+                          : 'BLURRY'}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="bento-hero-split">
+                    {/* Left Preview Viewport */}
+                    <div
+                      className="bento-preview-stage"
+                      onClick={() => {
+                        if (selectedItem) setWsMode('studio');
+                        else handlePickNativeMacFolder();
+                      }}
+                      title={selectedItem ? 'คลิกเพื่อเปิดดูใน Pro Studio 100% Eye Loupe' : 'คลิกเพื่อเลือกโฟลเดอร์รูปภาพ'}
+                    >
+                      {selectedItem ? (
+                        <>
+                          <img
+                            src={selectedItem.rescuedUrl || selectedItem.thumbUrl}
+                            alt={selectedItem.name}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'contain',
+                              display: 'block',
+                            }}
+                          />
+                          {selectedItem.analysis?.primaryFocusRegion && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                left: `${Math.min(72, Math.max(12, (selectedItem.analysis.primaryFocusRegion.box.x / Math.max(1, selectedItem.width)) * 100))}%`,
+                                top: `${Math.min(62, Math.max(10, (selectedItem.analysis.primaryFocusRegion.box.y / Math.max(1, selectedItem.height)) * 100))}%`,
+                                width: '24%',
+                                height: '24%',
+                                border: `2px solid ${
+                                  selectedItem.analysis.status === 'sharp'
+                                    ? '#2dd4bf'
+                                    : selectedItem.analysis.status === 'soft'
+                                    ? '#fb923c'
+                                    : '#f43f5e'
+                                }`,
+                                borderRadius: 10,
+                                background: 'rgba(45, 212, 191, 0.06)',
+                                boxShadow: '0 0 18px rgba(45, 212, 191, 0.25)',
+                                pointerEvents: 'none',
+                              }}
+                            >
+                              <span
+                                style={{
+                                  position: 'absolute',
+                                  top: -20,
+                                  left: 0,
+                                  fontSize: 9.5,
+                                  fontWeight: 800,
+                                  letterSpacing: '0.04em',
+                                  color:
+                                    selectedItem.analysis.status === 'sharp'
+                                      ? '#2dd4bf'
+                                      : selectedItem.analysis.status === 'soft'
+                                      ? '#fb923c'
+                                      : '#f43f5e',
+                                  background: 'rgba(5, 9, 18, 0.86)',
+                                  padding: '2px 7px',
+                                  borderRadius: 5,
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {selectedItem.analysis.status === 'sharp'
+                                  ? 'EYE-AF LOCKED'
+                                  : selectedItem.analysis.status === 'soft'
+                                  ? 'SOFT FOCUS'
+                                  : 'BLUR DETECTED'}
+                              </span>
+                            </div>
+                          )}
+                          <div className="bento-exif-pill">
+                            {inspectedMeta.camera || 'CAMERA'}
+                            {inspectedMeta.bib ? `  •  Bib #${inspectedMeta.bib}` : ''}
+                            {inspectedMeta.shutter ? `  •  ${inspectedMeta.shutter}` : ''}
+                            {inspectedMeta.fstop ? `  •  ${inspectedMeta.fstop}` : ''}
+                            {inspectedMeta.iso ? `  •  ${inspectedMeta.iso}` : ''}
+                          </div>
+                        </>
+                      ) : (
+                        <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 24 }}>
+                          <div style={{ fontSize: 32, marginBottom: 8 }}>👁️</div>
+                          <div style={{ fontWeight: 700, fontSize: 13.5, color: 'var(--text-main)' }}>
+                            คลิกเพื่อเลือกโฟลเดอร์รูปภาพ (รองรับ 5,000+ รูป & RAW)
+                          </div>
+                          <div style={{ fontSize: 12, marginTop: 4 }}>
+                            ระบบ AI 3 ขั้นตอนจะสแกนตรวจโฟกัสดวงตาและคัดภาพเบลอที่ความเร็ว ~250 รูป/วินาที
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right 3 AI Stage Breakdown Cards */}
+                    <div className="bento-stages-col">
+                      <div className="bento-stage-card" style={{ borderColor: 'rgba(56, 189, 248, 0.30)' }}>
+                        <div className="bento-stage-title">AI #1: 12×12 Skin & Torso Grid</div>
+                        <div className="bento-stage-desc">
+                          วิเคราะห์ความคมชัดเฉพาะโซนศีรษะและลำตัวนักวิ่ง แยกฉากหลังเบลออัตโนมัติ
+                        </div>
+                        <div className="bento-stage-stat" style={{ color: '#38bdf8' }}>
+                          {selectedItem?.analysis
+                            ? `${Math.round(selectedItem.analysis.subjectSharpness)} Energy • Bokeh ${selectedItem.analysis.bokehRatio}x`
+                            : 'Multi-Core C Ready'}
+                        </div>
+                      </div>
+
+                      <div className="bento-stage-card" style={{ borderColor: 'rgba(251, 146, 60, 0.30)' }}>
+                        <div className="bento-stage-title">AI #2: Vision Human Body Net</div>
+                        <div className="bento-stage-desc">
+                          ตรวจจับโครงสร้างนักวิ่งระดับ Deep Neural แม้ใส่โม่งดำ แว่นตา หรือหมวก
+                        </div>
+                        <div className="bento-stage-stat" style={{ color: '#fb923c' }}>
+                          {inspectedMeta.humanCount
+                            ? `${inspectedMeta.humanCount} Humans${inspectedMeta.maskedRunner ? ' (Masked Mode)' : ''}`
+                            : 'Apple Neural Engine Active'}
+                        </div>
+                      </div>
+
+                      <div className="bento-stage-card" style={{ borderColor: 'rgba(45, 212, 191, 0.32)' }}>
+                        <div className="bento-stage-title">AI #3: Face Capture Quality</div>
+                        <div className="bento-stage-desc">
+                          ซูมตรวจความคมชัดใบหน้าความละเอียด 1280px ป้องกันภาพกลางคืนหลุดเบลอ
+                        </div>
+                        <div className="bento-stage-stat" style={{ color: '#2dd4bf' }}>
+                          {selectedItem?.analysis
+                            ? `${selectedItem.analysis.score}% ${selectedItem.analysis.status.toUpperCase()}`
+                            : '1280px ROI Ready'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN: TELEMETRY MATRIX + STRICTNESS + 1-CLICK ACTION DOCK */}
+              <div className="bento-right-col">
+                {/* 1. NEURAL ENGINE TELEMETRY (TRI-STREAM FIBER-OPTIC MATRIX) */}
+                <div className="bento-side-card" style={{ borderColor: 'rgba(56, 189, 248, 0.28)' }}>
+                  <div className="bento-side-header">
+                    <span className="bento-side-kicker" style={{ color: '#38bdf8' }}>
+                      NEURAL ENGINE TELEMETRY
+                    </span>
+                    {isScanning && (
+                      <button
+                        className="btn btn-coral"
+                        style={{ padding: '3px 10px', fontSize: 11 }}
+                        onClick={handleStopScan}
+                      >
+                        ⏹ หยุดสแกน
+                      </button>
+                    )}
+                  </div>
+                  <MiniNeuralCornerWidget
+                    isScanning={isScanning}
+                    speed={scanProgress.speed}
+                    total={stats.all}
                   />
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, fontWeight: 700 }}>
-                      <span style={{ color: 'var(--mint)' }}>● วงนอก: ภาพคมชัด</span>
-                      <span>{stats.pctSharp}% ({stats.sharp})</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, fontWeight: 700 }}>
-                      <span style={{ color: 'var(--coral)' }}>● วงกลาง: พอใช้/กู้ได้</span>
-                      <span>{stats.pctSoft}% ({stats.soft})</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, fontWeight: 700 }}>
-                      <span style={{ color: 'var(--danger)' }}>● วงใน: ภาพเบลอ</span>
-                      <span>{stats.pctBlurry}% ({stats.blurry})</span>
-                    </div>
-                  </div>
                 </div>
 
-                <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-                  <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 8 }}>
-                    เกณฑ์ความเข้มงวดของ AI (Strictness Preset):
-                  </div>
+                {/* 2. CULLING STRICTNESS */}
+                <div className="bento-side-card">
+                  <div className="bento-side-kicker">CULLING STRICTNESS</div>
                   <div className="ws-mode-switch" style={{ width: '100%' }}>
                     <button
                       className={`ws-mode-btn ${preset === 'relaxed' ? 'active' : ''}`}
@@ -2120,147 +2313,44 @@ export default function App() {
                       style={{ flex: 1, justifyContent: 'center' }}
                       onClick={() => handleSelectPreset('standard')}
                     >
-                      มาตรฐานช่างภาพ
+                      มาตรฐาน
                     </button>
                     <button
                       className={`ws-mode-btn ${preset === 'strict' ? 'active' : ''}`}
                       style={{ flex: 1, justifyContent: 'center' }}
                       onClick={() => handleSelectPreset('strict')}
                     >
-                      เข้มงวดคมกริบ
+                      คมกริบ
                     </button>
                   </div>
-                </div>
-              </div>
-
-              {/* PANEL 2: HORIZONTAL BAR GRAPH (FOCUS & BLUR BREAKDOWN) */}
-              <div className="dash-panel">
-                <div className="dash-panel-head">
-                  <div>
-                    <div className="dash-panel-title">HORIZONTAL BAR ANALYTICS</div>
-                    <div className="dash-panel-sub">วิเคราะห์ลักษณะโฟกัสและสาเหตุภาพเสีย</div>
-                  </div>
-                </div>
-
-                <div className="hbar-list">
-                  <div className="hbar-item">
-                    <div className="hbar-top">
-                      <span>✅ โฟกัสเข้าดวงตาและตัวแบบคมกริบ (Sharp Focus)</span>
-                      <span style={{ color: 'var(--mint)' }}>
-                        {stats.sharp} รูป ({stats.pctSharp}%)
-                      </span>
-                    </div>
-                    <div className="hbar-track">
-                      <div
-                        className="hbar-fill"
-                        style={{ width: `${stats.pctSharp}%`, background: 'var(--mint)' }}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 2 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={thresholds.blinkDetection}
+                        onChange={(e) =>
+                          setThresholds((t) => ({ ...t, blinkDetection: e.target.checked }))
+                        }
                       />
-                    </div>
-                  </div>
-
-                  <div className="hbar-item">
-                    <div className="hbar-top">
-                      <span>✨ หลุดโฟกัสเล็กน้อย กู้ด้วย AI ได้ (Soft Focus)</span>
-                      <span style={{ color: 'var(--coral)' }}>
-                        {stats.soft} รูป ({stats.pctSoft}%)
-                      </span>
-                    </div>
-                    <div className="hbar-track">
-                      <div
-                        className="hbar-fill"
-                        style={{ width: `${stats.pctSoft}%`, background: 'var(--coral)' }}
+                      คัดคนหลับตาออก
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={onlyBestInBurst}
+                        onChange={(e) => setOnlyBestInBurst(e.target.checked)}
                       />
-                    </div>
-                  </div>
-
-                  <div className="hbar-item">
-                    <div className="hbar-top">
-                      <span>🔍 เลนส์หลุดโฟกัส (Out of Focus)</span>
-                      <span style={{ color: 'var(--danger)' }}>
-                        {stats.outOfFocus} รูป ({stats.pctOutOfFocus}%)
-                      </span>
-                    </div>
-                    <div className="hbar-track">
-                      <div
-                        className="hbar-fill"
-                        style={{ width: `${stats.pctOutOfFocus}%`, background: 'var(--danger)' }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="hbar-item">
-                    <div className="hbar-top">
-                      <span>💨 มือสั่น / สปีดชัตเตอร์ต่ำ (Motion Blur)</span>
-                      <span>
-                        {stats.motionBlur} รูป ({stats.pctMotion}%)
-                      </span>
-                    </div>
-                    <div className="hbar-track">
-                      <div
-                        className="hbar-fill"
-                        style={{ width: `${stats.pctMotion}%`, background: '#8b5cf6' }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="hbar-item">
-                    <div className="hbar-top">
-                      <span>🌲 โฟกัสหลุดไปเข้าฉากหลัง (Back-Focus)</span>
-                      <span>
-                        {stats.backFocus} รูป ({stats.pctBackFocus}%)
-                      </span>
-                    </div>
-                    <div className="hbar-track">
-                      <div
-                        className="hbar-fill"
-                        style={{ width: `${stats.pctBackFocus}%`, background: '#64748b' }}
-                      />
-                    </div>
+                      ช็อตที่ดีที่สุดในชุดรัว
+                    </label>
                   </div>
                 </div>
-              </div>
 
-              {/* PANEL 3: AI THINKING CORNER VISUALIZER & 1-CLICK COMMAND CENTER */}
-              <div className="dash-panel">
-                <div className="dash-panel-head">
-                  <div>
-                    <div className="dash-panel-title">AI NEURAL ENGINE & ACTIONS</div>
-                    <div className="dash-panel-sub">
-                      ความเร็ว {scanProgress.speed > 0 ? `${scanProgress.speed} รูป/วินาที` : 'Apple Silicon Multi-Core'}
-                    </div>
-                  </div>
-                  {isScanning && (
-                    <button
-                      className="btn btn-coral"
-                      style={{ padding: '3px 10px', fontSize: 11 }}
-                      onClick={handleStopScan}
-                    >
-                      ⏹ หยุดสแกน
-                    </button>
-                  )}
-                </div>
-
-                {/* Compact Animated "AI Thinking" Spectrum Widget in this Corner Card! */}
-                <MiniNeuralCornerWidget
-                  isScanning={isScanning}
-                  speed={scanProgress.speed}
-                  total={stats.all}
-                />
-
-                {/* Option Elements Action Buttons */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 2 }}>
-                  <button
-                    className="option-capsule"
-                    style={{ width: '100%', padding: '6px 16px 6px 6px' }}
-                    onClick={handlePickNativeMacFolder}
-                  >
-                    <span className="option-capsule-icon mint">01</span>
-                    <span>เลือกโฟลเดอร์รูปภาพที่ต้องการคัดแยก (5,000+ รูป)</span>
-                  </button>
+                {/* 3. 1-CLICK WORKFLOW ACTIONS */}
+                <div className="bento-side-card" style={{ flex: 1 }}>
+                  <div className="bento-side-kicker">1-CLICK WORKFLOW ACTIONS</div>
 
                   <button
-                    className="option-capsule"
-                    style={{ width: '100%', padding: '6px 16px 6px 6px' }}
+                    className="bento-action-btn danger"
                     disabled={stats.blurry === 0}
                     onClick={() => {
                       setBlurryPreviewId(blurryItems[0]?.id || null);
@@ -2270,35 +2360,36 @@ export default function App() {
                       setShowBlurryModal(true);
                     }}
                   >
-                    <span className="option-capsule-icon coral">02</span>
-                    <span>พรีวิวภาพเบลอ & กดลบทิ้งลงถังขยะ ({stats.blurry} รูป)</span>
+                    👁️🗑️ พรีวิวภาพเบลอ & ลบทิ้ง ({stats.blurry} รูป)
                   </button>
 
                   <button
-                    className="option-capsule"
-                    style={{
-                      width: '100%',
-                      padding: '6px 16px 6px 6px',
-                      background: 'var(--mint)',
-                      color: '#fff',
-                    }}
+                    className="bento-action-btn mint"
                     disabled={stats.all === 0}
-                    onClick={() => handleOrganizeFiles('blurry_only')}
+                    onClick={() => handleOrganizeFiles('all_three')}
                   >
-                    <span className="option-capsule-icon coral">03</span>
-                    <span>
-                      ย้ายภาพเบลอ ({stats.blurry} รูป) แยกเข้าโฟลเดอร์ _ภาพเบลอ
-                    </span>
+                    ⚡ แยกโฟลเดอร์ครบ 3 กลุ่ม + ไฟล์ RAW (0.05 วิ)
                   </button>
 
-                  <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
+                  <button
+                    className="bento-action-btn coral"
+                    disabled={stats.all === 0}
+                    onClick={() => {
+                      setActiveTab(stats.soft > 0 ? 'soft' : 'all');
+                      setWsMode('studio');
+                    }}
+                  >
+                    ✨ กู้ความคมชัด & เปิด Pro Studio ({stats.all} รูป)
+                  </button>
+
+                  <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 4 }}>
                     <button
                       className="btn"
                       style={{ flex: 1, justifyContent: 'center' }}
                       disabled={stats.all === 0}
-                      onClick={() => handleOrganizeFiles('all_three')}
+                      onClick={() => handleOrganizeFiles('blurry_only')}
                     >
-                      🗂️ แยกครบ 3 โฟลเดอร์
+                      📁 แยกเฉพาะภาพเบลอ
                     </button>
                     {canUndoOrganize && isNativeMacApp && (
                       <button
@@ -2306,7 +2397,7 @@ export default function App() {
                         style={{ flex: 1, justifyContent: 'center' }}
                         onClick={handleUndoOrganize}
                       >
-                        ↩️ ย้ายกลับที่เดิม
+                        ↩️ ย้ายกลับ
                       </button>
                     )}
                     {isNativeMacApp && currentFolderName && (
@@ -2315,7 +2406,7 @@ export default function App() {
                         style={{ flex: 1, justifyContent: 'center' }}
                         onClick={handleRevealInFinder}
                       >
-                        📂 เปิด Finder
+                        📂 Finder
                       </button>
                     )}
                   </div>
@@ -2329,7 +2420,7 @@ export default function App() {
                 <div>
                   <div className="dash-panel-title">LIVE PHOTO PREVIEW STRIP</div>
                   <div className="dash-panel-sub">
-                    คลิกที่รูปใดก็ได้เพื่อเปิดดูจอซูมลูกกะตา 100% ในโหมด Pro Studio
+                    คลิกที่รูปเพื่อดูผลวิเคราะห์ AI 3 ชั้น หรือดับเบิลคลิกเพื่อซูมลูกกะตา 100% ใน Pro Studio
                   </div>
                 </div>
                 {stats.all > 0 && (
