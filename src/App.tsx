@@ -19,7 +19,7 @@ type ThemeMode = 'dark' | 'light';
 type FilterTab = 'all' | 'sharp' | 'soft' | 'blurry';
 type StrictnessPreset = 'relaxed' | 'standard' | 'strict';
 
-const APP_VERSION = '1.7.3';
+const APP_VERSION = '1.7.4';
 const DEFAULT_UPDATE_MANIFEST_URL = 'https://memories-stack.github.io/Iris/version.json';
 
 interface RemoteUpdateManifest {
@@ -2124,120 +2124,71 @@ export default function App() {
                   </div>
 
                   <div className="bento-hero-split">
-                    {/* Left Preview Viewport with Ambient Blur Backdrop & Exact-Aligned Eye-AF Box */}
+                    {/* Left Preview Grid (4x2 = 8 Photos Directly Inside Inspector Stage!) */}
                     <div
                       className="bento-preview-stage"
-                      onClick={() => {
-                        if (selectedItem) setWsMode('studio');
-                        else handlePickNativeMacFolder();
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: effectiveItems.length === 0 ? 'center' : 'space-between',
+                        alignItems: effectiveItems.length === 0 ? 'center' : 'stretch',
+                        padding: 10,
+                        cursor: 'default',
                       }}
-                      title={selectedItem ? 'คลิกเพื่อเปิดดูใน Pro Studio 100% Eye Loupe' : 'คลิกเพื่อเลือกโฟลเดอร์รูปภาพ'}
                     >
-                      {selectedItem ? (
-                        <>
-                          {/* Subtle Ambient Blurred Backdrop so vertical photos never sit in stark black voids */}
-                          <img
-                            src={selectedItem.rescuedUrl || selectedItem.thumbUrl}
-                            alt=""
-                            aria-hidden="true"
-                            style={{
-                              position: 'absolute',
-                              inset: 0,
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                              filter: 'blur(28px) brightness(0.32) saturate(1.2)',
-                              transform: 'scale(1.15)',
-                              pointerEvents: 'none',
-                            }}
-                          />
-
-                          {/* Exact Photo Wrapper so EYE-AF Box aligns 100% to the photo pixels */}
-                          <div
-                            style={{
-                              position: 'relative',
-                              height: '100%',
-                              maxWidth: '100%',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <img
-                              src={selectedItem.rescuedUrl || selectedItem.thumbUrl}
-                              alt={selectedItem.name}
-                              style={{
-                                maxHeight: '100%',
-                                maxWidth: '100%',
-                                width: 'auto',
-                                height: '100%',
-                                objectFit: 'contain',
-                                display: 'block',
-                                borderRadius: 6,
-                                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.55)',
-                              }}
-                            />
-                            {selectedItem.analysis?.primaryFocusRegion && (
+                      {effectiveItems.length > 0 ? (
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                            gap: 10,
+                            width: '100%',
+                            height: '100%',
+                            alignContent: 'start',
+                          }}
+                        >
+                          {effectiveItems.slice(0, 8).map((item) => {
+                            const st = item.analysis?.status || 'blurry';
+                            const score = item.analysis?.score ?? 0;
+                            const isSel = selectedItem?.id === item.id;
+                            return (
                               <div
-                                style={{
-                                  position: 'absolute',
-                                  left: `${Math.min(70, Math.max(8, (selectedItem.analysis.primaryFocusRegion.box.x / Math.max(1, selectedItem.width)) * 100))}%`,
-                                  top: `${Math.min(65, Math.max(6, (selectedItem.analysis.primaryFocusRegion.box.y / Math.max(1, selectedItem.height)) * 100))}%`,
-                                  width: `${Math.min(48, Math.max(22, (selectedItem.analysis.primaryFocusRegion.box.width / Math.max(1, selectedItem.width)) * 100))}%`,
-                                  height: `${Math.min(38, Math.max(18, (selectedItem.analysis.primaryFocusRegion.box.height / Math.max(1, selectedItem.height)) * 100))}%`,
-                                  border: `2px solid ${
-                                    selectedItem.analysis.status === 'sharp'
-                                      ? '#2dd4bf'
-                                      : selectedItem.analysis.status === 'soft'
-                                      ? '#fb923c'
-                                      : '#f43f5e'
-                                  }`,
-                                  borderRadius: 8,
-                                  background: 'rgba(45, 212, 191, 0.07)',
-                                  boxShadow: '0 0 14px rgba(45, 212, 191, 0.35)',
-                                  pointerEvents: 'none',
+                                key={item.id}
+                                className={`photo-card ${isSel ? 'selected' : ''}`}
+                                onClick={() => setSelectedId(item.id)}
+                                onDoubleClick={() => {
+                                  setSelectedId(item.id);
+                                  setWsMode('studio');
                                 }}
+                                title="คลิกเพื่อดูข้อมูล AI ด้านขวา • ดับเบิลคลิกเพื่อซูม 100% ใน Pro Studio"
                               >
-                                <span
-                                  style={{
-                                    position: 'absolute',
-                                    top: -19,
-                                    left: -2,
-                                    fontSize: 9,
-                                    fontWeight: 800,
-                                    letterSpacing: '0.04em',
-                                    color:
-                                      selectedItem.analysis.status === 'sharp'
-                                        ? '#2dd4bf'
-                                        : selectedItem.analysis.status === 'soft'
-                                        ? '#fb923c'
-                                        : '#f43f5e',
-                                    background: 'rgba(5, 9, 18, 0.90)',
-                                    padding: '2px 6px',
-                                    borderRadius: 4,
-                                    whiteSpace: 'nowrap',
-                                  }}
-                                >
-                                  {selectedItem.analysis.status === 'sharp'
-                                    ? 'EYE-AF LOCKED'
-                                    : selectedItem.analysis.status === 'soft'
-                                    ? 'SOFT FOCUS'
-                                    : 'BLUR DETECTED'}
-                                </span>
+                                <div className="thumb-wrap">
+                                  <img
+                                    src={item.rescuedUrl || item.thumbUrl}
+                                    alt={item.name}
+                                    className="thumb-img"
+                                    loading="lazy"
+                                  />
+                                  <div className={`score-pill ${st}`}>
+                                    {st === 'sharp'
+                                      ? `คม ${score}%`
+                                      : st === 'soft'
+                                      ? `พอใช้ ${score}%`
+                                      : `เบลอ ${score}%`}
+                                  </div>
+                                </div>
+                                <div className="photo-card-info">
+                                  <div className="photo-name">{item.name}</div>
+                                </div>
                               </div>
-                            )}
-                          </div>
-
-                          <div className="bento-exif-pill">
-                            {inspectedMeta.camera || 'CAMERA'}
-                            {inspectedMeta.bib ? `  •  Bib #${inspectedMeta.bib}` : ''}
-                            {inspectedMeta.shutter ? `  •  ${inspectedMeta.shutter}` : ''}
-                            {inspectedMeta.fstop ? `  •  ${inspectedMeta.fstop}` : ''}
-                            {inspectedMeta.iso ? `  •  ${inspectedMeta.iso}` : ''}
-                          </div>
-                        </>
+                            );
+                          })}
+                        </div>
                       ) : (
-                        <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 24 }}>
+                        <div
+                          style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 24, cursor: 'pointer' }}
+                          onClick={handlePickNativeMacFolder}
+                        >
                           <div style={{ fontWeight: 700, fontSize: 13.5, color: 'var(--text-main)' }}>
                             คลิกเพื่อเลือกโฟลเดอร์รูปภาพ (รองรับ 5,000+ รูป & RAW)
                           </div>
@@ -2511,86 +2462,6 @@ export default function App() {
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* ROW 3: QUICK PHOTO PREVIEW STRIP IN DASHBOARD */}
-            <div className="dash-panel">
-              <div className="dash-panel-head">
-                <div>
-                  <div className="dash-panel-title">LIVE PHOTO PREVIEW STRIP</div>
-                  <div className="dash-panel-sub">
-                    คลิกที่รูปเพื่อดูผลวิเคราะห์ AI 3 ชั้น หรือดับเบิลคลิกเพื่อซูมลูกกะตา 100% ใน Pro Studio
-                  </div>
-                </div>
-                {stats.all > 0 && (
-                  <button className="btn btn-mint" onClick={() => setWsMode('studio')}>
-                    เปิดดูตารางภาพทั้งหมด ({stats.all} รูป)
-                  </button>
-                )}
-              </div>
-
-              {effectiveItems.length === 0 ? (
-                <div
-                  style={{
-                    padding: '20px',
-                    textAlign: 'center',
-                    color: 'var(--text-secondary)',
-                    fontSize: 13,
-                  }}
-                >
-                  ยังไม่มีรูปภาพในคิว — กดปุ่ม{' '}
-                  <strong style={{ color: 'var(--mint)', cursor: 'pointer' }} onClick={handlePickNativeMacFolder}>
-                    เลือกโฟลเดอร์
-                  </strong>{' '}
-                  หรือ{' '}
-                  <strong style={{ color: 'var(--coral)', cursor: 'pointer' }} onClick={handleLoadDemoPhotos}>
-                    ชุดภาพทดสอบ
-                  </strong>{' '}
-                  เพื่อเริ่มวิเคราะห์ทันที
-                </div>
-              ) : (
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(8, minmax(0, 1fr))',
-                    gap: 10,
-                  }}
-                >
-                  {effectiveItems.slice(0, 8).map((item) => {
-                    const st = item.analysis?.status || 'blurry';
-                    const score = item.analysis?.score ?? 0;
-                    return (
-                      <div
-                        key={item.id}
-                        className="photo-card"
-                        onClick={() => {
-                          setSelectedId(item.id);
-                          setWsMode('studio');
-                        }}
-                      >
-                        <div className="thumb-wrap">
-                          <img
-                            src={item.rescuedUrl || item.thumbUrl}
-                            alt={item.name}
-                            className="thumb-img"
-                            loading="lazy"
-                          />
-                          <div className={`score-pill ${st}`}>
-                            {st === 'sharp'
-                              ? `คม ${score}%`
-                              : st === 'soft'
-                              ? `พอใช้ ${score}%`
-                              : `เบลอ ${score}%`}
-                          </div>
-                        </div>
-                        <div className="photo-card-info">
-                          <div className="photo-name">{item.name}</div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
             </div>
           </div>
         </div>

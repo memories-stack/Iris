@@ -1,8 +1,8 @@
 {
   "name": "iris-studio",
   "private": true,
-  "version": "1.7.3",
-  "releaseNotes": "Iris v1.7.3 — Ambient Blur Backdrop + Pixel-Accurate Eye-AF Box + Compact AI Progress Telemetry Bars",
+  "version": "1.7.4",
+  "releaseNotes": "Iris v1.7.4 — Unified 4x2 Photo Grid directly inside Focus Inspector & removed redundant bottom strip for clean 1-screen fit",
   "description": "Iris — AI Still Photo Blur & Eye Focus Culling Studio for macOS",
   "type": "module",
   "scripts": {

@@ -1126,11 +1126,11 @@ body, #root {
 
 .bento-hero-split {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 290px;
+  grid-template-columns: minmax(0, 1fr) 280px;
   gap: 14px;
   flex: 1;
-  min-height: 270px;
-  max-height: 310px;
+  min-height: 310px;
+  max-height: 410px;
 }
 
 .bento-preview-stage {
@@ -1142,10 +1142,8 @@ body, #root {
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   height: 100%;
-  min-height: 265px;
-  padding: 10px;
+  min-height: 300px;
 }
 
 .bento-telemetry-summary {
