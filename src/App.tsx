@@ -19,7 +19,7 @@ type ThemeMode = 'dark' | 'light';
 type FilterTab = 'all' | 'sharp' | 'soft' | 'blurry';
 type StrictnessPreset = 'relaxed' | 'standard' | 'strict';
 
-const APP_VERSION = '1.7.8';
+const APP_VERSION = '1.7.9';
 const DEFAULT_UPDATE_MANIFEST_URL = 'https://memories-stack.github.io/Iris/version.json';
 
 interface RemoteUpdateManifest {
@@ -602,8 +602,9 @@ function RadialIrisRadarWidget({
       angle += dt * (scanning ? 1.65 : 0.45);
 
       const dpr = Math.min(2, window.devicePixelRatio || 2);
-      const cssW = canvas.clientWidth || 240;
-      const cssH = canvas.clientHeight || 175;
+      const rect = canvas.getBoundingClientRect();
+      const cssW = Math.max(180, Math.round(rect.width || canvas.clientWidth || 240));
+      const cssH = Math.max(150, Math.round(rect.height || canvas.clientHeight || 175));
       if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
         canvas.width = Math.round(cssW * dpr);
         canvas.height = Math.round(cssH * dpr);
@@ -721,15 +722,16 @@ function RadialIrisRadarWidget({
     <div
       style={{
         flex: 1,
-        minHeight: 132,
+        minHeight: 168,
+        height: '100%',
         borderRadius: 12,
         overflow: 'hidden',
-        border: '1px solid rgba(45, 212, 191, 0.24)',
-        background: '#04070f',
+        border: '1px solid rgba(45, 212, 191, 0.28)',
+        background: '#050a16',
         position: 'relative',
       }}
     >
-      <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
+      <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }} />
     </div>
   );
 }
@@ -2423,17 +2425,14 @@ export default function App() {
                       )}
                     </div>
 
-                    {/* RIGHT WIDE PREVIEW GRID (Exact 2-Row Fit + Scrollable inside frame!) */}
+                    {/* RIGHT WIDE PREVIEW GRID (Visible Scrollbar + Smooth Scroll) */}
                     <div
-                      className="bento-preview-stage"
+                      className="bento-preview-stage bento-scrollable-grid"
                       style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: effectiveItems.length === 0 ? 'center' : 'flex-start',
-                        alignItems: effectiveItems.length === 0 ? 'center' : 'stretch',
-                        padding: 10,
+                        display: 'block',
+                        padding: 12,
                         cursor: 'default',
-                        overflowY: effectiveItems.length > 0 ? 'auto' : 'hidden',
+                        overflowY: 'scroll',
                         overflowX: 'hidden',
                       }}
                     >
@@ -2447,7 +2446,7 @@ export default function App() {
                             alignContent: 'start',
                           }}
                         >
-                          {effectiveItems.slice(0, 120).map((item) => {
+                          {effectiveItems.slice(0, 200).map((item) => {
                             const st = item.analysis?.status || 'blurry';
                             const score = item.analysis?.score ?? 0;
                             const isSel = selectedItem?.id === item.id;
