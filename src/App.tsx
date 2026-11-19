@@ -19,7 +19,7 @@ type ThemeMode = 'dark' | 'light';
 type FilterTab = 'all' | 'sharp' | 'soft' | 'blurry';
 type StrictnessPreset = 'relaxed' | 'standard' | 'strict';
 
-const APP_VERSION = '1.7.5';
+const APP_VERSION = '1.7.6';
 const DEFAULT_UPDATE_MANIFEST_URL = 'https://memories-stack.github.io/Iris/version.json';
 
 interface RemoteUpdateManifest {
@@ -547,6 +547,169 @@ function MiniNeuralCornerWidget({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// 4B. 120fps Radial Iris Focus Radar Visualizer (360° Spectrum Ring + Precision Scale)
+function RadialIrisRadarWidget({
+  pctSharp,
+  pctSoft,
+  pctBlurry,
+  focusScore,
+  isScanning,
+}: {
+  pctSharp: number;
+  pctSoft: number;
+  pctBlurry: number;
+  focusScore: number | null;
+  isScanning: boolean;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const propsRef = useRef({ pctSharp, pctSoft, pctBlurry, focusScore, isScanning });
+  propsRef.current = { pctSharp, pctSoft, pctBlurry, focusScore, isScanning };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId = 0;
+    let lastTime = performance.now();
+    let angle = 0;
+
+    const draw = (now: number) => {
+      const dt = Math.min(0.05, Math.max(0.001, (now - lastTime) * 0.001));
+      lastTime = now;
+
+      const { pctSharp: pS, pctSoft: pM, pctBlurry: pB, focusScore: fScore, isScanning: scanning } = propsRef.current;
+      angle += dt * (scanning ? 1.8 : 0.32);
+
+      const dpr = Math.min(2, window.devicePixelRatio || 2);
+      const cssW = canvas.clientWidth || 240;
+      const cssH = canvas.clientHeight || 168;
+      if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
+        canvas.width = Math.round(cssW * dpr);
+        canvas.height = Math.round(cssH * dpr);
+      }
+
+      ctx.save();
+      ctx.scale(dpr, dpr);
+
+      const w = cssW;
+      const h = cssH;
+      const cx = w * 0.5;
+      const cy = h * 0.5;
+      const outerR = Math.min(w, h) * 0.44;
+      const innerR = outerR * 0.48;
+
+      // Deep Obsidian Background
+      const bg = ctx.createRadialGradient(cx, cy, 4, cx, cy, outerR * 1.4);
+      bg.addColorStop(0, '#0a1426');
+      bg.addColorStop(1, '#050811');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+
+      // Outer Precision Tick Scale (60 ticks rotating gently)
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle * 0.35);
+      for (let i = 0; i < 60; i++) {
+        const a = (i * Math.PI * 2) / 60;
+        const isMajor = i % 5 === 0;
+        const r1 = outerR + 3;
+        const r2 = outerR + (isMajor ? 9 : 5);
+        ctx.strokeStyle = isMajor ? 'rgba(56, 189, 248, 0.55)' : 'rgba(148, 163, 184, 0.22)';
+        ctx.lineWidth = isMajor ? 1.4 : 0.8;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * r1, Math.sin(a) * r1);
+        ctx.lineTo(Math.cos(a) * r2, Math.sin(a) * r2);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 72 Radial Iris Spectrum Rays (Sharp = Teal, Soft = Amber, Blurry = Coral)
+      const totalRays = 72;
+      const sharpFrac = pS + pM + pB > 0 ? pS / (pS + pM + pB) : 0.85;
+      const softFrac = pS + pM + pB > 0 ? pM / (pS + pM + pB) : 0.08;
+      const sharpCount = Math.round(totalRays * sharpFrac);
+      const softCount = Math.round(totalRays * softFrac);
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < totalRays; i++) {
+        const a = -Math.PI * 0.5 + (i * Math.PI * 2) / totalRays;
+        const pulse = 0.85 + 0.15 * Math.sin(angle * 3.0 + i * 0.45);
+        const rEnd = innerR + (outerR - innerR) * (0.76 + 0.22 * pulse);
+
+        let col = 'rgba(45, 212, 191, 0.72)';
+        if (i >= sharpCount && i < sharpCount + softCount) {
+          col = 'rgba(251, 146, 60, 0.78)';
+        } else if (i >= sharpCount + softCount) {
+          col = 'rgba(244, 63, 94, 0.82)';
+        }
+
+        ctx.strokeStyle = col;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(a) * (innerR + 2), cy + Math.sin(a) * (innerR + 2));
+        ctx.lineTo(cx + Math.cos(a) * rEnd, cy + Math.sin(a) * rEnd);
+        ctx.stroke();
+      }
+
+      // Sweeping Radar Beam
+      const beamA = -Math.PI * 0.5 + angle;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(beamA) * innerR, cy + Math.sin(beamA) * innerR);
+      ctx.lineTo(cx + Math.cos(beamA) * outerR, cy + Math.sin(beamA) * outerR);
+      ctx.stroke();
+      ctx.restore();
+
+      // Inner Black Optical Pupil
+      ctx.fillStyle = '#04070f';
+      ctx.beginPath();
+      ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(45, 212, 191, 0.55)';
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+
+      // Center Percentage Typography
+      const mainPct = fScore !== null ? fScore : pS;
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = '800 18px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`${mainPct}%`, cx, cy - 4);
+
+      ctx.fillStyle = '#2dd4bf';
+      ctx.font = '700 8.5px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.fillText(fScore !== null ? 'FOCUS LOCK' : 'SHARP RATE', cx, cy + 12);
+
+      ctx.restore();
+      animId = requestAnimationFrame(draw);
+    };
+
+    animId = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(animId);
+  }, []);
+
+  return (
+    <div
+      style={{
+        flex: 1,
+        minHeight: 132,
+        borderRadius: 12,
+        overflow: 'hidden',
+        border: '1px solid rgba(45, 212, 191, 0.24)',
+        background: '#050811',
+        position: 'relative',
+      }}
+    >
+      <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
     </div>
   );
 }
@@ -2124,7 +2287,123 @@ export default function App() {
                   </div>
 
                   <div className="bento-hero-split">
-                    {/* Left Preview Grid (4x2 = 8 Photos Directly Inside Inspector Stage!) */}
+                    {/* LEFTMOST COLUMN: Compact AI Telemetry + 120fps Radial Iris Radar */}
+                    <div className="bento-stages-col">
+                      {/* Mini Telemetry Header: Score + Bib */}
+                      <div className="bento-telemetry-summary">
+                        <div>
+                          <div style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
+                            FOCUS CONFIDENCE
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 24,
+                              fontWeight: 900,
+                              lineHeight: 1.08,
+                              color:
+                                selectedItem?.analysis?.status === 'sharp'
+                                  ? '#2dd4bf'
+                                  : selectedItem?.analysis?.status === 'soft'
+                                  ? '#fb923c'
+                                  : '#f43f5e',
+                            }}
+                          >
+                            {selectedItem?.analysis ? `${selectedItem.analysis.score}%` : `${stats.pctSharp}%`}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
+                            RACE BIB OCR
+                          </div>
+                          <div style={{ fontSize: 15, fontWeight: 900, color: 'var(--text-main)' }}>
+                            {inspectedMeta.bib ? `#${inspectedMeta.bib}` : '—'}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Compact 3-Stage AI Bars (No vertical bloat) */}
+                      <div className="bento-stage-card" style={{ borderColor: 'rgba(56, 189, 248, 0.25)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span className="bento-stage-title">AI #1 · 12×12 Grid</span>
+                          <span className="bento-stage-stat" style={{ color: '#38bdf8' }}>
+                            {selectedItem?.analysis
+                              ? `${Math.round(selectedItem.analysis.subjectSharpness)} E`
+                              : 'Ready'}
+                          </span>
+                        </div>
+                        <div className="bento-bar-track">
+                          <div
+                            className="bento-bar-fill"
+                            style={{
+                              width: `${Math.min(100, Math.round(((selectedItem?.analysis?.subjectSharpness || 0) / 1600) * 100))}%`,
+                              background: '#38bdf8',
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="bento-stage-card" style={{ borderColor: 'rgba(251, 146, 60, 0.25)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span className="bento-stage-title">AI #2 · Human Body</span>
+                          <span className="bento-stage-stat" style={{ color: '#fb923c' }}>
+                            {inspectedMeta.humanCount
+                              ? `${inspectedMeta.humanCount} Detected`
+                              : 'Active'}
+                          </span>
+                        </div>
+                        <div className="bento-bar-track">
+                          <div
+                            className="bento-bar-fill"
+                            style={{
+                              width: inspectedMeta.humanCount ? '100%' : '35%',
+                              background: '#fb923c',
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="bento-stage-card" style={{ borderColor: 'rgba(45, 212, 191, 0.28)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span className="bento-stage-title">AI #3 · Face Quality</span>
+                          <span className="bento-stage-stat" style={{ color: '#2dd4bf' }}>
+                            {selectedItem?.analysis
+                              ? `${selectedItem.analysis.score}% ${selectedItem.analysis.status.toUpperCase()}`
+                              : '1280px ROI'}
+                          </span>
+                        </div>
+                        <div className="bento-bar-track">
+                          <div
+                            className="bento-bar-fill"
+                            style={{
+                              width: `${selectedItem?.analysis?.score ?? 0}%`,
+                              background:
+                                selectedItem?.analysis?.status === 'blurry' ? '#f43f5e' : '#2dd4bf',
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* 120fps Animated Radial Iris Radar Widget */}
+                      <RadialIrisRadarWidget
+                        pctSharp={stats.pctSharp}
+                        pctSoft={stats.pctSoft}
+                        pctBlurry={stats.pctBlurry}
+                        focusScore={selectedItem?.analysis?.score ?? null}
+                        isScanning={isScanning}
+                      />
+
+                      {selectedItem && (
+                        <button
+                          className="btn btn-mint"
+                          style={{ width: '100%', justifyContent: 'center', padding: '7px 12px', fontSize: 11.5 }}
+                          onClick={() => setWsMode('studio')}
+                        >
+                          ซูมลูกกะตา 100% ใน Pro Studio
+                        </button>
+                      )}
+                    </div>
+
+                    {/* RIGHT WIDE PREVIEW GRID (4x3 = 12 Photos Directly Inside Inspector Stage!) */}
                     <div
                       className="bento-preview-stage"
                       style={{
@@ -2161,7 +2440,7 @@ export default function App() {
                                   setSelectedId(item.id);
                                   setWsMode('studio');
                                 }}
-                                title="คลิกเพื่อดูข้อมูล AI ด้านขวา • ดับเบิลคลิกเพื่อซูม 100% ใน Pro Studio"
+                                title="คลิกเพื่อดูข้อมูล AI ด้านซ้าย • ดับเบิลคลิกเพื่อซูม 100% ใน Pro Studio"
                               >
                                 <div className="thumb-wrap" style={{ flex: 1, aspectRatio: 'auto', minHeight: 0 }}>
                                   <img
@@ -2197,126 +2476,6 @@ export default function App() {
                             ระบบ AI 3 ขั้นตอนจะสแกนตรวจโฟกัสดวงตาและคัดภาพเบลอที่ความเร็ว ~250 รูป/วินาที
                           </div>
                         </div>
-                      )}
-                    </div>
-
-                    {/* Right Clean AI Telemetry Bars + Camera EXIF Summary (No Verbose Text Walls) */}
-                    <div className="bento-stages-col">
-                      {/* Mini Telemetry Header: Score + Bib */}
-                      <div className="bento-telemetry-summary">
-                        <div>
-                          <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
-                            FOCUS CONFIDENCE
-                          </div>
-                          <div
-                            style={{
-                              fontSize: 28,
-                              fontWeight: 900,
-                              lineHeight: 1.1,
-                              color:
-                                selectedItem?.analysis?.status === 'sharp'
-                                  ? '#2dd4bf'
-                                  : selectedItem?.analysis?.status === 'soft'
-                                  ? '#fb923c'
-                                  : '#f43f5e',
-                            }}
-                          >
-                            {selectedItem?.analysis ? `${selectedItem.analysis.score}%` : '--'}
-                          </div>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
-                            RACE BIB OCR
-                          </div>
-                          <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text-main)' }}>
-                            {inspectedMeta.bib ? `#${inspectedMeta.bib}` : '—'}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Clean 3-Stage AI Bars */}
-                      <div className="bento-stage-card" style={{ borderColor: 'rgba(56, 189, 248, 0.25)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span className="bento-stage-title">AI #1 · 12×12 Grid</span>
-                          <span className="bento-stage-stat" style={{ color: '#38bdf8' }}>
-                            {selectedItem?.analysis
-                              ? `${Math.round(selectedItem.analysis.subjectSharpness)} E`
-                              : 'Ready'}
-                          </span>
-                        </div>
-                        <div className="bento-bar-track">
-                          <div
-                            className="bento-bar-fill"
-                            style={{
-                              width: `${Math.min(100, Math.round(((selectedItem?.analysis?.subjectSharpness || 0) / 1600) * 100))}%`,
-                              background: '#38bdf8',
-                            }}
-                          />
-                        </div>
-                        <div className="bento-stage-desc">
-                          {selectedItem?.analysis
-                            ? `Bokeh Separation ${selectedItem.analysis.bokehRatio}x`
-                            : 'Multi-Core Subject Isolation'}
-                        </div>
-                      </div>
-
-                      <div className="bento-stage-card" style={{ borderColor: 'rgba(251, 146, 60, 0.25)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span className="bento-stage-title">AI #2 · Human Body</span>
-                          <span className="bento-stage-stat" style={{ color: '#fb923c' }}>
-                            {inspectedMeta.humanCount
-                              ? `${inspectedMeta.humanCount} Detected`
-                              : 'Active'}
-                          </span>
-                        </div>
-                        <div className="bento-bar-track">
-                          <div
-                            className="bento-bar-fill"
-                            style={{
-                              width: inspectedMeta.humanCount ? '100%' : '35%',
-                              background: '#fb923c',
-                            }}
-                          />
-                        </div>
-                        <div className="bento-stage-desc">
-                          {inspectedMeta.maskedRunner
-                            ? 'Masked Runner Neural Lock'
-                            : 'Apple Vision Upper-Body Net'}
-                        </div>
-                      </div>
-
-                      <div className="bento-stage-card" style={{ borderColor: 'rgba(45, 212, 191, 0.28)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span className="bento-stage-title">AI #3 · Face Quality</span>
-                          <span className="bento-stage-stat" style={{ color: '#2dd4bf' }}>
-                            {selectedItem?.analysis
-                              ? `${selectedItem.analysis.score}% ${selectedItem.analysis.status.toUpperCase()}`
-                              : '1280px ROI'}
-                          </span>
-                        </div>
-                        <div className="bento-bar-track">
-                          <div
-                            className="bento-bar-fill"
-                            style={{
-                              width: `${selectedItem?.analysis?.score ?? 0}%`,
-                              background:
-                                selectedItem?.analysis?.status === 'blurry' ? '#f43f5e' : '#2dd4bf',
-                            }}
-                          />
-                        </div>
-                        <div className="bento-stage-desc">
-                          1280px High-Res Eye & Face Verification
-                        </div>
-                      </div>
-
-                      {selectedItem && (
-                        <button
-                          className="btn btn-mint"
-                          style={{ width: '100%', justifyContent: 'center', padding: '7px 12px', fontSize: 11.5 }}
-                          onClick={() => setWsMode('studio')}
-                        >
-                          ซูมลูกกะตา 100% ใน Pro Studio
-                        </button>
                       )}
                     </div>
                   </div>

@@ -1133,7 +1133,7 @@ body, #root {
 
 .bento-hero-split {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: 265px minmax(0, 1fr);
   gap: 14px;
   flex: 1;
   min-height: 0;
@@ -1194,19 +1194,18 @@ body, #root {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  justify-content: space-between;
+  min-height: 0;
 }
 
 .bento-stage-card {
   background: var(--bg-subtle);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 9px 12px;
+  border-radius: 11px;
+  padding: 8px 11px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  justify-content: center;
+  gap: 3px;
+  flex: 0 0 auto;
 }
 
 .bento-stage-title {

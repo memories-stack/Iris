@@ -1,8 +1,8 @@
 {
   "name": "iris-studio",
   "private": true,
-  "version": "1.7.5",
-  "releaseNotes": "Iris v1.7.5 — Full-Height Edge-to-Edge Bento Dashboard (4x3 12-photo grid filling 100% viewport with zero empty gap)",
+  "version": "1.7.6",
+  "releaseNotes": "Iris v1.7.6 — Leftmost AI Telemetry Column + 120fps Radial Iris Focus Radar + 4x3 Live Photo Grid",
   "description": "Iris — AI Still Photo Blur & Eye Focus Culling Studio for macOS",
   "type": "module",
   "scripts": {
