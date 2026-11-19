@@ -1,8 +1,8 @@
 {
   "name": "iris-studio",
   "private": true,
-  "version": "1.7.0",
-  "releaseNotes": "Iris v1.7.0 — Next-Gen Obsidian Bento Dashboard (designed in Figma) + 3-Stage Hybrid AI Focus Inspector + Blurry Review Tab",
+  "version": "1.7.1",
+  "releaseNotes": "Iris v1.7.1 — Compact Single-Screen Bento Dashboard Fit (zero scroll, balanced preview & strip proportions)",
   "description": "Iris — AI Still Photo Blur & Eye Focus Culling Studio for macOS",
   "type": "module",
   "scripts": {

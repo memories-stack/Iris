@@ -19,7 +19,7 @@ type ThemeMode = 'dark' | 'light';
 type FilterTab = 'all' | 'sharp' | 'soft' | 'blurry';
 type StrictnessPreset = 'relaxed' | 'standard' | 'strict';
 
-const APP_VERSION = '1.7.0';
+const APP_VERSION = '1.7.1';
 const DEFAULT_UPDATE_MANIFEST_URL = 'https://memories-stack.github.io/Iris/version.json';
 
 interface RemoteUpdateManifest {
@@ -335,8 +335,8 @@ function MiniNeuralCornerWidget({
       phase += dt * smoothMult;
 
       const dpr = Math.min(2, window.devicePixelRatio || 2);
-      const cssW = canvas.clientWidth || 340;
-      const cssH = 96;
+      const cssW = canvas.clientWidth || 330;
+      const cssH = 76;
       if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
         canvas.width = Math.round(cssW * dpr);
         canvas.height = Math.round(cssH * dpr);
@@ -506,7 +506,7 @@ function MiniNeuralCornerWidget({
         position: 'relative',
       }}
     >
-      <canvas ref={canvasRef} style={{ width: '100%', height: 96, display: 'block' }} />
+      <canvas ref={canvasRef} style={{ width: '100%', height: 76, display: 'block' }} />
       {(isScanning || total > 0) && (
         <div
           style={{
@@ -2453,11 +2453,11 @@ export default function App() {
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))',
-                    gap: 12,
+                    gridTemplateColumns: 'repeat(8, minmax(0, 1fr))',
+                    gap: 10,
                   }}
                 >
-                  {effectiveItems.slice(0, 14).map((item) => {
+                  {effectiveItems.slice(0, 8).map((item) => {
                     const st = item.analysis?.status || 'blurry';
                     const score = item.analysis?.score ?? 0;
                     return (
