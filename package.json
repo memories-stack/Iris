@@ -1,8 +1,8 @@
 {
   "name": "iris-studio",
   "private": true,
-  "version": "1.7.1",
-  "releaseNotes": "Iris v1.7.1 — Compact Single-Screen Bento Dashboard Fit (zero scroll, balanced preview & strip proportions)",
+  "version": "1.7.2",
+  "releaseNotes": "Iris v1.7.2 — Clean Typography UI (removed leading emojis from buttons/tabs for pure macOS minimal look)",
   "description": "Iris — AI Still Photo Blur & Eye Focus Culling Studio for macOS",
   "type": "module",
   "scripts": {

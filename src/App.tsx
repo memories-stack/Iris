@@ -19,7 +19,7 @@ type ThemeMode = 'dark' | 'light';
 type FilterTab = 'all' | 'sharp' | 'soft' | 'blurry';
 type StrictnessPreset = 'relaxed' | 'standard' | 'strict';
 
-const APP_VERSION = '1.7.1';
+const APP_VERSION = '1.7.2';
 const DEFAULT_UPDATE_MANIFEST_URL = 'https://memories-stack.github.io/Iris/version.json';
 
 interface RemoteUpdateManifest {
@@ -1753,19 +1753,19 @@ export default function App() {
             </div>
           </div>
 
-          {/* Switch between 📊 Analytics, 🎛️ Pro Studio, and 👁️🗑️ Blurry Review */}
+          {/* Switch between Analytics, Pro Studio, and Blurry Review */}
           <div className="ws-mode-switch">
             <button
               className={`ws-mode-btn ${wsMode === 'dashboard' ? 'active' : ''}`}
               onClick={() => setWsMode('dashboard')}
             >
-              📊 Analytics
+              Analytics
             </button>
             <button
               className={`ws-mode-btn ${wsMode === 'studio' ? 'active' : ''}`}
               onClick={() => setWsMode('studio')}
             >
-              🎛️ Pro Studio ({stats.all})
+              Pro Studio ({stats.all})
             </button>
             <button
               className="ws-mode-btn"
@@ -1782,7 +1782,7 @@ export default function App() {
                 setShowBlurryModal(true);
               }}
             >
-              👁️🗑️ Blurry Review ({stats.blurry})
+              Blurry Review ({stats.blurry})
             </button>
           </div>
         </div>
@@ -1793,7 +1793,6 @@ export default function App() {
             onClick={currentFolderName ? handleRevealInFinder : handlePickNativeMacFolder}
             title="คลิกเพื่อเลือกหรือเปิดดูโฟลเดอร์"
           >
-            <span>📂</span>
             <span>
               {currentFolderName
                 ? `${currentFolderName} • ${stats.all} ภาพ ${
@@ -1809,28 +1808,26 @@ export default function App() {
           <div className="ws-mode-switch">
             <button
               className={`ws-mode-btn ${theme === 'dark' ? 'active' : ''}`}
-              style={{ padding: '5px 10px', fontSize: 11.5 }}
+              style={{ padding: '5px 11px', fontSize: 11.5 }}
               onClick={() => setTheme('dark')}
             >
-              🌙 Dark
+              Dark
             </button>
             <button
               className={`ws-mode-btn ${theme === 'light' ? 'active' : ''}`}
-              style={{ padding: '5px 10px', fontSize: 11.5 }}
+              style={{ padding: '5px 11px', fontSize: 11.5 }}
               onClick={() => setTheme('light')}
             >
-              ☀️ Light
+              Light
             </button>
           </div>
 
-          <button className="option-capsule" onClick={handleLoadDemoPhotos}>
-            <span className="option-capsule-icon coral">★</span>
-            <span>ชุดภาพทดสอบ AI</span>
+          <button className="option-capsule" style={{ padding: '6px 14px' }} onClick={handleLoadDemoPhotos}>
+            <span>ชุดภาพทดสอบ</span>
           </button>
 
-          <button className="option-capsule" onClick={handlePickNativeMacFolder}>
-            <span className="option-capsule-icon mint">📁</span>
-            <span>เลือกโฟลเดอร์รูปภาพ</span>
+          <button className="option-capsule" style={{ padding: '6px 14px' }} onClick={handlePickNativeMacFolder}>
+            <span>เลือกโฟลเดอร์</span>
           </button>
 
           {/* OTA Version & Auto-Update Button in Top-Right Corner */}
@@ -1838,6 +1835,7 @@ export default function App() {
             type="button"
             className="option-capsule"
             style={{
+              padding: '6px 14px',
               borderColor:
                 updateStatus === 'available'
                   ? 'rgba(45, 212, 191, 0.7)'
@@ -1853,28 +1851,15 @@ export default function App() {
             disabled={updateStatus === 'checking' || updateStatus === 'updating'}
             title={`Iris เวอร์ชันปัจจุบัน v${APP_VERSION} — คลิกเพื่อตรวจหาอัปเดตออนไลน์`}
           >
-            <span className="option-capsule-icon mint">
-              {updateStatus === 'checking'
-                ? '⏳'
-                : updateStatus === 'updating'
-                ? '⬇️'
-                : updateStatus === 'available'
-                ? '✨'
-                : updateStatus === 'up-to-date'
-                ? '✅'
-                : updateStatus === 'error'
-                ? '⚠️'
-                : '☁️'}
-            </span>
             <span style={{ fontWeight: 800 }}>
               {updateStatus === 'checking'
-                ? 'กำลังเช็กอัปเดต...'
+                ? 'กำลังเช็ก...'
                 : updateStatus === 'updating'
                 ? 'กำลังอัปเดต...'
                 : updateStatus === 'available' && updateInfo
                 ? `อัปเดตใหม่ v${updateInfo.version}`
                 : updateStatus === 'up-to-date'
-                ? `ล่าสุดแล้ว v${APP_VERSION}`
+                ? `ล่าสุด v${APP_VERSION}`
                 : updateStatus === 'error'
                 ? `v${APP_VERSION} (Offline)`
                 : `v${APP_VERSION}`}
@@ -2360,7 +2345,7 @@ export default function App() {
                       setShowBlurryModal(true);
                     }}
                   >
-                    👁️🗑️ พรีวิวภาพเบลอ & ลบทิ้ง ({stats.blurry} รูป)
+                    พรีวิวภาพเบลอ & ลบทิ้ง ({stats.blurry} รูป)
                   </button>
 
                   <button
@@ -2368,7 +2353,7 @@ export default function App() {
                     disabled={stats.all === 0}
                     onClick={() => handleOrganizeFiles('all_three')}
                   >
-                    ⚡ แยกโฟลเดอร์ครบ 3 กลุ่ม + ไฟล์ RAW (0.05 วิ)
+                    แยกโฟลเดอร์ครบ 3 กลุ่ม + ไฟล์ RAW (0.05 วิ)
                   </button>
 
                   <button
@@ -2379,7 +2364,7 @@ export default function App() {
                       setWsMode('studio');
                     }}
                   >
-                    ✨ กู้ความคมชัด & เปิด Pro Studio ({stats.all} รูป)
+                    กู้ความคมชัด & เปิด Pro Studio ({stats.all} รูป)
                   </button>
 
                   <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 4 }}>
@@ -2389,7 +2374,7 @@ export default function App() {
                       disabled={stats.all === 0}
                       onClick={() => handleOrganizeFiles('blurry_only')}
                     >
-                      📁 แยกเฉพาะภาพเบลอ
+                      แยกเฉพาะภาพเบลอ
                     </button>
                     {canUndoOrganize && isNativeMacApp && (
                       <button
@@ -2397,7 +2382,7 @@ export default function App() {
                         style={{ flex: 1, justifyContent: 'center' }}
                         onClick={handleUndoOrganize}
                       >
-                        ↩️ ย้ายกลับ
+                        ย้ายกลับ
                       </button>
                     )}
                     {isNativeMacApp && currentFolderName && (
@@ -2406,7 +2391,7 @@ export default function App() {
                         style={{ flex: 1, justifyContent: 'center' }}
                         onClick={handleRevealInFinder}
                       >
-                        📂 Finder
+                        เปิด Finder
                       </button>
                     )}
                   </div>
@@ -2425,7 +2410,7 @@ export default function App() {
                 </div>
                 {stats.all > 0 && (
                   <button className="btn btn-mint" onClick={() => setWsMode('studio')}>
-                    🎛️ เปิดดูตารางภาพทั้งหมด ({stats.all} รูป) ➔
+                    เปิดดูตารางภาพทั้งหมด ({stats.all} รูป)
                   </button>
                 )}
               </div>
@@ -2433,21 +2418,21 @@ export default function App() {
               {effectiveItems.length === 0 ? (
                 <div
                   style={{
-                    padding: '28px',
+                    padding: '20px',
                     textAlign: 'center',
                     color: 'var(--text-secondary)',
-                    fontSize: 13.5,
+                    fontSize: 13,
                   }}
                 >
                   ยังไม่มีรูปภาพในคิว — กดปุ่ม{' '}
                   <strong style={{ color: 'var(--mint)', cursor: 'pointer' }} onClick={handlePickNativeMacFolder}>
-                    📁 เลือกโฟลเดอร์รูปภาพ
+                    เลือกโฟลเดอร์
                   </strong>{' '}
                   หรือ{' '}
                   <strong style={{ color: 'var(--coral)', cursor: 'pointer' }} onClick={handleLoadDemoPhotos}>
-                    ★ ชุดภาพทดสอบ AI
+                    ชุดภาพทดสอบ
                   </strong>{' '}
-                  เพื่อดูกราฟแดชบอร์ดทันที
+                  เพื่อเริ่มวิเคราะห์ทันที
                 </div>
               ) : (
                 <div
