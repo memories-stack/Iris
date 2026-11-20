@@ -19,7 +19,7 @@ type ThemeMode = 'dark' | 'light';
 type FilterTab = 'all' | 'sharp' | 'soft' | 'blurry';
 type StrictnessPreset = 'relaxed' | 'standard' | 'strict';
 
-const APP_VERSION = '1.8.0';
+const APP_VERSION = '1.8.1';
 const DEFAULT_UPDATE_MANIFEST_URL = 'https://memories-stack.github.io/Iris/version.json';
 
 interface RemoteUpdateManifest {
@@ -2164,7 +2164,7 @@ export default function App() {
           <div style={{ display: 'flex', gap: 8 }}>
             {isNativeMacApp && (
               <button className="btn btn-mint" onClick={handleRevealInFinder}>
-                📂 เปิดดูใน Finder
+                เปิดดูใน Finder
               </button>
             )}
             <button className="btn" onClick={() => setBannerMsg(null)}>
@@ -3185,12 +3185,12 @@ export default function App() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {canUndoOrganize && isNativeMacApp && (
             <button className="btn" onClick={handleUndoOrganize}>
-              ↩️ ย้ายไฟล์กลับที่เดิม (Undo)
+              ย้ายไฟล์กลับที่เดิม (Undo)
             </button>
           )}
           {isNativeMacApp && currentFolderName && (
             <button className="btn" onClick={handleRevealInFinder}>
-              📂 เปิดดูใน Finder
+              เปิดดูใน Finder
             </button>
           )}
           <button
@@ -3198,7 +3198,7 @@ export default function App() {
             disabled={stats.all === 0}
             onClick={() => handleOrganizeFiles('all_three')}
           >
-            🗂️ แยกครบ 3 โฟลเดอร์
+            แยกครบ 3 โฟลเดอร์
           </button>
           <button
             className="btn btn-coral"
@@ -3212,7 +3212,7 @@ export default function App() {
               setShowBlurryModal(true);
             }}
           >
-            👁️🗑️ พรีวิวภาพเบลอ & กดลบทิ้ง ({stats.blurry} รูป)
+            พรีวิวภาพเบลอ & กดลบทิ้ง ({stats.blurry} รูป)
           </button>
 
           <button
@@ -3221,7 +3221,7 @@ export default function App() {
             disabled={stats.all === 0}
             onClick={() => handleOrganizeFiles('blurry_only')}
           >
-            🚀 ย้ายภาพเบลอ ({stats.blurry} รูป) แยกเข้าโฟลเดอร์ _ภาพเบลอ
+            ย้ายภาพเบลอ ({stats.blurry} รูป) แยกเข้าโฟลเดอร์ _ภาพเบลอ
           </button>
         </div>
       </footer>

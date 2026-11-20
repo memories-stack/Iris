@@ -1,8 +1,8 @@
 {
   "name": "iris-studio",
   "private": true,
-  "version": "1.8.0",
-  "releaseNotes": "Iris v1.8.0 — Strict CSS Grid height lock (scrollbar inside photo grid only + 3D Neural Sphere visible in left pane)",
+  "version": "1.8.1",
+  "releaseNotes": "Iris v1.8.1 — Removed remaining leading emojis on bottom action bar buttons for clean typography",
   "description": "Iris — AI Still Photo Blur & Eye Focus Culling Studio for macOS",
   "type": "module",
   "scripts": {
