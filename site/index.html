@@ -1,0 +1,1152 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iris v2.2.0 — Pro Photo Studio for macOS (AI Culling, Color Studio, Metal Export &amp; Face Search)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #09090b;
+      --surface: #121215;
+      --surface-2: #18181c;
+      --surface-3: #222228;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --dim: #71717a;
+      --accent: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.28);
+      --emerald: #10b981;
+      --amber: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      min-height: 100vh;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: "Inter", "Noto Sans Thai", -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    .ambient-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(59, 130, 246, 0.14), transparent 62%),
+        radial-gradient(ellipse 50% 35% at 85% 20%, rgba(255, 255, 255, 0.04), transparent 60%),
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 64px 64px, 64px 64px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.5) 55%, rgba(0,0,0,0) 100%);
+    }
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Navbar */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(9, 9, 11, 0.78);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .brand img {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      border: 1px solid var(--border-strong);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    }
+    .brand-name {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .brand-tag {
+      font-size: 11px;
+      font-family: "JetBrains Mono", monospace;
+      color: var(--muted);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .nav-links a {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 15px;
+      border-radius: 9px;
+      background: var(--accent);
+      color: #fff !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      box-shadow: 0 4px 18px var(--accent-glow);
+      transition: filter 0.15s, transform 0.15s;
+    }
+    .nav-cta:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+    /* Hero */
+    .hero {
+      padding: 68px 0 44px;
+      text-align: center;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      background: rgba(24, 24, 28, 0.9);
+      border: 1px solid var(--border-strong);
+      font-size: 12px;
+      font-weight: 600;
+      color: #e4e4e7;
+      margin-bottom: 22px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+    }
+    .pill-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 10px var(--emerald);
+    }
+    h1 {
+      font-size: clamp(36px, 5.6vw, 62px);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.08;
+      margin: 0 auto 18px;
+      max-width: 860px;
+      background: linear-gradient(180deg, #ffffff 0%, #d4d4d8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-sub {
+      max-width: 680px;
+      margin: 0 auto 32px;
+      font-size: clamp(15px, 1.7vw, 17.5px);
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 26px;
+      border-radius: 12px;
+      background: var(--accent);
+      color: #ffffff;
+      font-size: 15.5px;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 10px 30px rgba(59, 130, 246, 0.36), inset 0 1px 0 rgba(255,255,255,0.22);
+      transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1.5px);
+      filter: brightness(1.08);
+      box-shadow: 0 14px 36px rgba(59, 130, 246, 0.45), inset 0 1px 0 rgba(255,255,255,0.28);
+    }
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-strong);
+      color: var(--text);
+      font-size: 14.5px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-ghost:hover { background: var(--surface-3); border-color: rgba(255,255,255,0.28); }
+    .sub-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 18px;
+      font-size: 12.5px;
+      color: var(--dim);
+    }
+    .sub-links a {
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(255,255,255,0.2);
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .sub-links a:hover { color: #fff; border-color: #fff; }
+
+    /* Interactive Studio Showcase Window */
+    .showcase-wrap {
+      margin: 40px auto 56px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.03));
+      padding: 1px;
+      box-shadow: 0 36px 96px rgba(0, 0, 0, 0.78), 0 0 80px rgba(59, 130, 246, 0.08);
+    }
+    .studio-win {
+      background: #111113;
+      border-radius: 17px;
+      overflow: hidden;
+    }
+    .win-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #161619;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .traffic {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .traffic span {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .t-red { background: #ef4444; opacity: 0.85; }
+    .t-yel { background: #f59e0b; opacity: 0.85; }
+    .t-grn { background: #22c55e; opacity: 0.85; }
+    .win-tabs {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #0d0d0f;
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .win-tab {
+      appearance: none;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 12.2px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .win-tab:hover { color: var(--text); }
+    .win-tab.active {
+      background: #222228;
+      color: #ffffff;
+      border-color: rgba(228, 228, 231, 0.25);
+    }
+    .win-meta {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--dim);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .win-body {
+      padding: 20px;
+      min-height: 330px;
+    }
+    .pane { display: none; }
+    .pane.active { display: grid; grid-template-columns: 1.35fr 0.95fr; gap: 18px; align-items: stretch; }
+    .stage-box {
+      background: #0c0c0e;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    .stage-photo {
+      height: 196px;
+      border-radius: 9px;
+      background:
+        radial-gradient(circle at 68% 32%, rgba(251, 191, 36, 0.22), transparent 46%),
+        radial-gradient(circle at 30% 65%, rgba(59, 130, 246, 0.22), transparent 55%),
+        linear-gradient(135deg, #1f2028 0%, #141419 52%, #1d1b24 100%);
+      border: 1px solid rgba(255,255,255,0.07);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .focus-reticle {
+      width: 82px;
+      height: 82px;
+      border: 1.5px solid #10b981;
+      border-radius: 6px;
+      box-shadow: 0 0 24px rgba(16, 185, 129, 0.35);
+      position: relative;
+    }
+    .focus-reticle::after {
+      content: "EYE AF · 98.4%";
+      position: absolute;
+      top: -22px;
+      left: 0;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: #10b981;
+      white-space: nowrap;
+      background: rgba(9, 9, 11, 0.85);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    .exif-strip {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: #141418;
+      border: 1px solid var(--border);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: #d4d4d8;
+      flex-wrap: wrap;
+    }
+    .panel-box {
+      background: #151519;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      color: #e4e4e7;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .chip-ok {
+      font-size: 10.5px;
+      font-family: "JetBrains Mono", monospace;
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    .slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .slider-lbl {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: var(--muted);
+    }
+    .slider-lbl span:last-child {
+      font-family: "JetBrains Mono", monospace;
+      color: #e4e4e7;
+    }
+    .slider-track {
+      height: 4px;
+      border-radius: 999px;
+      background: #27272e;
+      position: relative;
+      overflow: hidden;
+    }
+    .slider-fill {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    }
+    .face-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .face-card {
+      background: #151519;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .face-thumb {
+      height: 78px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #272730, #18181f);
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      padding: 6px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .face-score {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      font-weight: 700;
+      color: #10b981;
+      background: rgba(9, 9, 11, 0.85);
+      padding: 2px 6px;
+      border-radius: 5px;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    .face-meta {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Metrics Strip */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin: 0 0 64px;
+    }
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 18px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .metric-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+    .metric-val {
+      font-family: "JetBrains Mono", monospace;
+      font-size: clamp(22px, 2.5vw, 30px);
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.03em;
+      margin-bottom: 4px;
+    }
+    .metric-label {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* Section Headers */
+    .sec-head {
+      margin-bottom: 28px;
+    }
+    .sec-kicker {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #60a5fa;
+      margin-bottom: 8px;
+    }
+    .sec-title {
+      font-size: clamp(24px, 3vw, 34px);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+    .sec-desc {
+      font-size: 15px;
+      color: var(--muted);
+      max-width: 640px;
+    }
+
+    /* Bento Grid */
+    .bento {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 16px;
+      margin-bottom: 68px;
+    }
+    .bento-card {
+      background: linear-gradient(180deg, #16161a 0%, #111114 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .bento-card:hover {
+      border-color: rgba(255, 255, 255, 0.18);
+      transform: translateY(-2px);
+    }
+    .span-3 { grid-column: span 3; }
+    .span-2 { grid-column: span 2; }
+    .span-4 { grid-column: span 4; }
+    .icon-box {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #1f1f26;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e4e4e7;
+    }
+    .bento-card h3 {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: #ffffff;
+    }
+    .bento-card p {
+      font-size: 13.8px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: auto;
+      padding-top: 6px;
+    }
+    .tag {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: #d4d4d8;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    /* Download & Guide Section */
+    .dl-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
+      margin-bottom: 64px;
+    }
+    .dl-card {
+      background: linear-gradient(180deg, #17171c 0%, #121215 100%);
+      border: 1px solid var(--border-strong);
+      border-radius: 18px;
+      padding: 28px;
+    }
+    .dl-card h3 {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .dl-card > p {
+      font-size: 13.8px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .dl-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .dl-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #1c1c22;
+      border: 1px solid var(--border);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .dl-item:hover { background: #25252d; border-color: rgba(255,255,255,0.22); }
+    .dl-item span:last-child {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--dim);
+    }
+    .guide-card {
+      background: #141418;
+      border: 1px solid rgba(245, 158, 11, 0.24);
+      border-radius: 18px;
+      padding: 26px;
+    }
+    .guide-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fcd34d;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .steps {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .steps li {
+      display: flex;
+      gap: 12px;
+      font-size: 13.2px;
+      color: #d4d4d8;
+      align-items: flex-start;
+    }
+    .step-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: #fcd34d;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 0 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 12.5px;
+      color: var(--dim);
+    }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: #fff; }
+
+    @media (max-width: 900px) {
+      .pane.active { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+      .span-3, .span-2, .span-4 { grid-column: span 6; }
+      .dl-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+    @media (max-width: 560px) {
+      .dl-list { grid-template-columns: 1fr; }
+      .face-grid { grid-template-columns: 1fr; }
+      .hero { padding-top: 44px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-bg"></div>
+
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="#">
+        <img src="./iris_logo_512.png" alt="Iris Logo" />
+        <span class="brand-name">Iris Studio</span>
+        <span class="brand-tag" id="nav-ver">v2.2.0</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#workflow">เวิร์กโฟลว์</a>
+        <a href="#features">ความสามารถ</a>
+        <a href="#download">ดาวน์โหลด</a>
+        <a href="./app.html">เวอร์ชันเว็บ</a>
+        <a class="nav-cta" id="nav-dmg" href="https://github.com/memories-stack/Iris/releases/download/v2.2.0/Iris-Installer.dmg">ดาวน์โหลด macOS</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="pill">
+        <span class="pill-dot"></span>
+        <span id="ver-badge">Iris v2.2.0 • macOS Universal (Apple Silicon &amp; Intel)</span>
+      </div>
+      <h1>สตูดิโอคัดภาพ แต่งสี และค้นหาใบหน้า ระดับงานวิ่ง 60,000 ภาพ</h1>
+      <p class="hero-sub">
+        ออกแบบมาเพื่อช่างภาพงานวิ่งมาราธอน อีเวนต์ และพอร์ตเทรตโดยเฉพาะ — คัดภาพเบลอด้วย Apple Neural Engine,
+        แต่งสีด้วย Iris Smart Tone &amp; Lightroom .xmp, Export บน Metal GPU และค้นหานักวิ่งด้วย AI Face Search ออฟไลน์ 100%
+      </p>
+      <div class="hero-actions">
+        <a id="dmg-btn" class="btn-primary" href="https://github.com/memories-stack/Iris/releases/download/v2.2.0/Iris-Installer.dmg">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          ดาวน์โหลด Iris-Installer.dmg (macOS)
+        </a>
+        <a class="btn-ghost" href="#download">
+          ตัวติดตั้ง .PKG / .ZIP &amp; เวอร์ชันเว็บ
+        </a>
+      </div>
+      <div class="sub-links">
+        <span>Apple Silicon (M1–M4) &amp; Intel</span>
+        <span>•</span>
+        <span>รวมโมเดล AuraFace-v1 CoreML ในตัว</span>
+        <span>•</span>
+        <span>อัปเดตอัตโนมัติ (OTA)</span>
+      </div>
+    </section>
+
+    <!-- Interactive Studio Window Showcase -->
+    <section id="workflow" class="showcase-wrap" aria-label="Iris Studio Interactive Preview">
+      <div class="studio-win">
+        <div class="win-bar">
+          <div class="traffic">
+            <span class="t-red"></span>
+            <span class="t-yel"></span>
+            <span class="t-grn"></span>
+          </div>
+          <div class="win-tabs" role="tablist">
+            <button class="win-tab active" data-tab="cull" role="tab">1. AI Culling</button>
+            <button class="win-tab" data-tab="color" role="tab">2. Color &amp; Smart Tone</button>
+            <button class="win-tab" data-tab="export" role="tab">3. Metal Export</button>
+            <button class="win-tab" data-tab="face" role="tab">4. AI Face Search</button>
+          </div>
+          <div class="win-meta">
+            <span>Metal GPU</span>
+            <span>•</span>
+            <span>100% Offline</span>
+          </div>
+        </div>
+
+        <div class="win-body">
+          <!-- Tab 1: AI Culling -->
+          <div class="pane active" id="pane-cull">
+            <div class="stage-box">
+              <div class="stage-photo">
+                <div class="focus-reticle"></div>
+              </div>
+              <div class="exif-strip">
+                <span>70mm · f/2.8 · 1/1600s · ISO 400</span>
+                <span>NIKON Z 8 • Z 70-200mm f/2.8 VR S</span>
+              </div>
+            </div>
+            <div class="panel-box">
+              <div class="panel-head">
+                <span>Hybrid AI Focus Engine</span>
+                <span class="chip-ok">SHARP · KEEP</span>
+              </div>
+              <div class="slider-row">
+                <div class="slider-lbl"><span>Eye Focus Sharpness</span><span>98.4 / 100</span></div>
+                <div class="slider-track"><div class="slider-fill" style="width:94%"></div></div>
+              </div>
+              <div class="slider-row">
+                <div class="slider-lbl"><span>Exposure &amp; Anti-Blackout</span><span>Balanced</span></div>
+                <div class="slider-track"><div class="slider-fill" style="width:82%"></div></div>
+              </div>
+              <div class="slider-row">
+                <div class="slider-lbl"><span>Bib OCR Detection</span><span>#4821</span></div>
+                <div class="slider-track"><div class="slider-fill" style="width:91%"></div></div>
+              </div>
+              <div class="tag-row">
+                <span class="tag">JPEG + RAW (.NEF/.ARW/.CR3)</span>
+                <span class="tag">EVF Loupe 4096px</span>
+                <span class="tag">Auto Split Folders</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Color & Smart Tone -->
+          <div class="pane" id="pane-color">
+            <div class="stage-box">
+              <div class="stage-photo" style="flex-direction:column; gap:10px; padding:16px;">
+                <svg viewBox="0 0 320 96" width="100%" height="96" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="hg" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.45"/>
+                      <stop offset="100%" stop-color="#60a5fa" stop-opacity="0.02"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M0 92 Q40 88 72 58 T148 34 T224 48 T290 22 L320 82 L320 96 L0 96 Z" fill="url(#hg)"/>
+                  <path d="M0 92 Q40 88 72 58 T148 34 T224 48 T290 22 L320 82" fill="none" stroke="#60a5fa" stroke-width="2"/>
+                  <path d="M0 92 C70 90 120 70 165 48 C210 26 260 12 320 6" fill="none" stroke="#e4e4e7" stroke-width="1.5" stroke-dasharray="4 3"/>
+                </svg>
+                <div style="font-size:11.5px; color:#a1a1aa; font-family:'JetBrains Mono', monospace;">
+                  Iris Smart Tone (Natural 50%) · Nikon EXIF Profile · White-Shirt Highlight Guard
+                </div>
+              </div>
+              <div class="exif-strip">
+                <span>4-Studio Engine: Basic · Tone Curve · HSL 8-Color · 3-Way Grading</span>
+                <span>Import/Export .XMP</span>
+              </div>
+            </div>
+            <div class="panel-box">
+              <div class="panel-head">
+                <span>Iris Smart Tone</span>
+                <span class="chip-ok">NATURAL MODE</span>
+              </div>
+              <div class="slider-row">
+                <div class="slider-lbl"><span>Exposure</span><span>+0.28 EV</span></div>
+                <div class="slider-track"><div class="slider-fill" style="width:62%"></div></div>
+              </div>
+              <div class="slider-row">
+                <div class="slider-lbl"><span>Highlights (White-Shirt Guard)</span><span>-36</span></div>
+                <div class="slider-track"><div class="slider-fill" style="width:32%"></div></div>
+              </div>
+              <div class="slider-row">
+                <div class="slider-lbl"><span>Shadows Recovery</span><span>+28</span></div>
+                <div class="slider-track"><div class="slider-fill" style="width:68%"></div></div>
+              </div>
+              <div class="tag-row">
+                <span class="tag">Camera-Aware EXIF</span>
+                <span class="tag">Double-Click Reset</span>
+                <span class="tag">4096px Zoom</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 3: Metal Export -->
+          <div class="pane" id="pane-export">
+            <div class="stage-box">
+              <div style="display:flex; flex-direction:column; gap:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                  <div>
+                    <div style="font-size:12px; color:var(--muted);">Metal GPU Unified-Memory Batch</div>
+                    <div style="font-size:26px; font-weight:800; font-family:'JetBrains Mono',monospace;">4,584 / 4,584</div>
+                  </div>
+                  <span class="chip-ok">100% UNDER 1,600 KB</span>
+                </div>
+                <div class="slider-track" style="height:8px;"><div class="slider-fill" style="width:100%; background:linear-gradient(90deg,#3b82f6,#10b981);"></div></div>
+                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+                  <div style="background:#141418; border:1px solid var(--border); border-radius:8px; padding:10px;">
+                    <div style="font-size:11px; color:var(--dim);">ความเร็วเฉลี่ย</div>
+                    <div style="font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700;">8.1 img/s</div>
+                  </div>
+                  <div style="background:#141418; border:1px solid var(--border); border-radius:8px; padding:10px;">
+                    <div style="font-size:11px; color:var(--dim);">ขนาดเฉลี่ย</div>
+                    <div style="font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700;">1,388 KB</div>
+                  </div>
+                  <div style="background:#141418; border:1px solid var(--border); border-radius:8px; padding:10px;">
+                    <div style="font-size:11px; color:var(--dim);">RAM หลังจบงาน</div>
+                    <div style="font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700;">1.06 GB</div>
+                  </div>
+                </div>
+              </div>
+              <div class="exif-strip">
+                <span>รองรับสูงสุด 60,000 ภาพต่อชุด</span>
+                <span>คำนวณเวลาเสร็จตามนาฬิกาจริง (HH:MM น.)</span>
+              </div>
+            </div>
+            <div class="panel-box">
+              <div class="panel-head">
+                <span>Export Preset</span>
+                <span class="chip-ok">PRODUCTION</span>
+              </div>
+              <div class="slider-row">
+                <div class="slider-lbl"><span>Max File Size Target</span><span>1,600 KB</span></div>
+                <div class="slider-track"><div class="slider-fill" style="width:76%"></div></div>
+              </div>
+              <div class="slider-row">
+                <div class="slider-lbl"><span>Watermark PNG Scale (9 Positions)</span><span>18%</span></div>
+                <div class="slider-track"><div class="slider-fill" style="width:45%"></div></div>
+              </div>
+              <div class="tag-row">
+                <span class="tag">FX / DX / Resize to Fit</span>
+                <span class="tag">Custom Rename</span>
+                <span class="tag">Zero Memory Leak</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 4: AI Face Search -->
+          <div class="pane" id="pane-face">
+            <div class="stage-box">
+              <div class="face-grid">
+                <div class="face-card">
+                  <div class="face-thumb"><span class="face-score">94.6%</span></div>
+                  <div class="face-meta">402NC_Z8/DSC_4812.JPG</div>
+                </div>
+                <div class="face-card">
+                  <div class="face-thumb"><span class="face-score">91.2%</span></div>
+                  <div class="face-meta">405NC_Z6/DSC_1904.JPG</div>
+                </div>
+                <div class="face-card">
+                  <div class="face-thumb"><span class="face-score">86.8%</span></div>
+                  <div class="face-meta">409SONY/A7M4_772.JPG</div>
+                </div>
+              </div>
+              <div class="exif-strip">
+                <span>สแกนทะลุทุกโฟลเดอร์ย่อย (30,410 ภาพ · 52,815 ใบหน้า)</span>
+                <span>ค้นหาซ้ำ: 0.08 วินาที</span>
+              </div>
+            </div>
+            <div class="panel-box">
+              <div class="panel-head">
+                <span>AuraFace-v1 CoreML</span>
+                <span class="chip-ok">512-DIM · 75%</span>
+              </div>
+              <div class="slider-row">
+                <div class="slider-lbl"><span>Similarity Threshold (Default)</span><span>75%</span></div>
+                <div class="slider-track"><div class="slider-fill" style="width:75%"></div></div>
+              </div>
+              <div class="slider-row">
+                <div class="slider-lbl"><span>Real Runner Match vs Strangers</span><span>94.6% vs ≤45%</span></div>
+                <div class="slider-track"><div class="slider-fill" style="width:95%"></div></div>
+              </div>
+              <div class="tag-row">
+                <span class="tag">Reveal in Finder</span>
+                <span class="tag">Copy Matches</span>
+                <span class="tag">Per-Event Disk Cache</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Real Benchmark Metrics -->
+    <section class="metrics" aria-label="Verified Performance Benchmarks">
+      <div class="metric-card">
+        <div class="metric-val">60,000</div>
+        <div class="metric-label">ภาพต่อชุดที่รองรับใน Batch Export</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">0.08s</div>
+        <div class="metric-label">ค้นหาใบหน้าจาก 30,000+ ภาพ (แคช)</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">8–12 /s</div>
+        <div class="metric-label">ความเร็ว Export ด้วย Apple Metal GPU</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">100%</div>
+        <div class="metric-label">ออฟไลน์บน Mac · ไม่มีค่ารายเดือน</div>
+      </div>
+    </section>
+
+    <!-- Bento Features -->
+    <section id="features">
+      <div class="sec-head">
+        <div class="sec-kicker">Engineered for Production</div>
+        <h2 class="sec-title">ครบทุกเครื่องมือตั้งแต่คัดภาพจนส่งลูกค้า</h2>
+        <p class="sec-desc">สร้างด้วย Native Objective-C, Apple Vision, CoreML และ Metal GPU เพื่อให้ทำงานได้จริงในวันส่งงานหลักหมื่นภาพ</p>
+      </div>
+
+      <div class="bento">
+        <article class="bento-card span-3">
+          <div class="icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><circle cx="11" cy="9.5" r="2.5"/><path d="M7.5 15.5c.8-1.6 2.1-2.5 3.5-2.5s2.7.9 3.5 2.5"/></svg>
+          </div>
+          <h3>AI Face Search (AuraFace-v1 CoreML)</h3>
+          <p>โยนรูปใบหน้านักวิ่ง 1 ใบ สแกนค้นหาทะลุทุกโฟลเดอร์ย่อยข้ามทุกกล้องด้วยโมเดล ResNet100 512-dim บน Apple Neural Engine แม่นยำระดับ 94–96% พร้อมไฟล์แคชแยกตามงาน ค้นหาคนถัดไปเสร็จใน 0.08 วินาที และกดเปิดชี้ไฟล์ใน Finder ได้ทันที</p>
+          <div class="tag-row">
+            <span class="tag">Recursive Multi-Folder</span>
+            <span class="tag">Default 75%</span>
+            <span class="tag">Apache-2.0 Local Model</span>
+          </div>
+        </article>
+
+        <article class="bento-card span-3">
+          <div class="icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18"/><path d="M12 8l6-3"/><path d="M12 12l7-1"/><path d="M12 16l6 3"/></svg>
+          </div>
+          <h3>Iris Smart Tone &amp; Lightroom Color Studio</h3>
+          <p>ปรับแสง เงา และกันเสื้อวิ่งสีขาวหลุดอัตโนมัติรายภาพ พร้อมอ่าน EXIF แยกยี่ห้อกล้อง (Nikon / Canon / Sony / Fujifilm / Leica) คงเอกลักษณ์สีผิวเดิม 100% ครบทั้ง Basic, Tone Curve RGB, HSL 8 สี, 3-Way Grading, ซูม 4096px คมกริบ และรองรับไฟล์ .xmp</p>
+          <div class="tag-row">
+            <span class="tag">Natural &amp; Pro Look</span>
+            <span class="tag">EXIF Strip 0.2ms</span>
+            <span class="tag">Import / Export .XMP</span>
+          </div>
+        </article>
+
+        <article class="bento-card span-2">
+          <div class="icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <h3>Metal GPU Batch Export</h3>
+          <p>รองรับสูงสุด 60,000 ภาพต่อชุด คุมขนาดไฟล์ KB แม่นยำ 100% (ทดสอบจริง 4,584 ภาพ Nikon Z8 ผ่าน 0 failed) ใส่ลายน้ำ PNG 9 ตำแหน่ง และคำนวณเวลาเสร็จตามนาฬิกาจริง</p>
+        </article>
+
+        <article class="bento-card span-2">
+          <div class="icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <h3>Hybrid AI Culling + RAW คู่กัน</h3>
+          <p>ตรวจโฟกัสดวงตา ใบหน้า และภาพหลุดไฟมืดดำ พร้อมอ่านเลขบิบ (OCR) แยกโฟลเดอร์ภาพคมชัด/ภาพเบลอ และย้ายไฟล์ RAW (.NEF, .ARW, .CR3) ตามคู่ JPEG อัตโนมัติ</p>
+        </article>
+
+        <article class="bento-card span-2">
+          <div class="icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h3>ความปลอดภัย 5 ชั้น &amp; ออฟไลน์</h3>
+          <p>ประมวลผลในเครื่อง Mac ของคุณ 100% ไม่มีอัปโหลดภาพขึ้นเซิร์ฟเวอร์ ล็อค Origin/Host ภายใน สลับภาษา TH/EN อัตโนมัติ และอัปเดตเวอร์ชันใหม่ตรงจาก GitHub</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Download & First Launch Guide -->
+    <section id="download" class="dl-grid">
+      <div class="dl-card">
+        <h3>ดาวน์โหลด Iris Studio</h3>
+        <p>ไฟล์ติดตั้งแบบ Universal ใช้ได้ทั้ง Apple Silicon (M1–M4) และ Intel Mac พร้อมโมเดล AI ในตัว</p>
+        <a id="dmg-btn-2" class="btn-primary" style="width:100%;" href="https://github.com/memories-stack/Iris/releases/download/v2.2.0/Iris-Installer.dmg">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          ดาวน์โหลด Iris-Installer.dmg (แนะนำ)
+        </a>
+        <div class="dl-list">
+          <a id="pkg-btn" class="dl-item" href="https://github.com/memories-stack/Iris/releases/download/v2.2.0/Iris-Installer.pkg">
+            <span>ตัวติดตั้งอัตโนมัติ</span>
+            <span>.PKG</span>
+          </a>
+          <a id="zip-btn" class="dl-item" href="https://github.com/memories-stack/Iris/releases/download/v2.2.0/Iris-Mac.zip">
+            <span>ไฟล์แอปพกพา</span>
+            <span>.ZIP</span>
+          </a>
+          <a class="dl-item" href="./app.html">
+            <span>เปิดใช้งานบนเว็บ</span>
+            <span>HTML</span>
+          </a>
+          <a class="dl-item" href="./Iris-Offline.html" download="Iris-Offline.html">
+            <span>ไฟล์เว็บออฟไลน์</span>
+            <span>OFFLINE</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="guide-card">
+        <div class="guide-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          วิธีเปิดแอปครั้งแรกบน macOS (ทำครั้งเดียว)
+        </div>
+        <ol class="steps">
+          <li>
+            <span class="step-num">1</span>
+            <span>เปิดไฟล์ <strong>Iris-Installer.dmg</strong> แล้วลากแอป <strong>Iris</strong> ไปวางในโฟลเดอร์ <strong>Applications</strong></span>
+          </li>
+          <li>
+            <span class="step-num">2</span>
+            <span>หาก macOS แจ้งเตือน <em>"Iris Not Opened"</em> ให้กด <strong>Done</strong> แล้วเปิด <strong>System Settings → Privacy &amp; Security</strong></span>
+          </li>
+          <li>
+            <span class="step-num">3</span>
+            <span>เลื่อนลงล่างสุด กดปุ่ม <strong>Open Anyway</strong> และใส่รหัสเครื่อง Mac — ครั้งต่อไปเปิดใช้งานได้ทันทีตลอดชีพครับ</span>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <footer>
+      <div>Iris Studio v2.2.0 • macOS Universal (Apple Silicon &amp; Intel) • 100% Offline Processing</div>
+      <div>Built for Pro Photography</div>
+    </footer>
+  </main>
+
+  <script>
+    // Interactive Studio Window Tabs
+    document.querySelectorAll('.win-tab').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var target = btn.getAttribute('data-tab');
+        document.querySelectorAll('.win-tab').forEach(function(b) { b.classList.remove('active'); });
+        document.querySelectorAll('.pane').forEach(function(p) { p.classList.remove('active'); });
+        btn.classList.add('active');
+        var pane = document.getElementById('pane-' + target);
+        if (pane) pane.classList.add('active');
+      });
+    });
+
+    // Live Version & Download URL Sync
+    fetch('./version.json?t=' + Date.now())
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(d) {
+        if (!d || !d.version) return;
+        var b = document.getElementById('ver-badge');
+        var nv = document.getElementById('nav-ver');
+        var a1 = document.getElementById('dmg-btn');
+        var a2 = document.getElementById('dmg-btn-2');
+        var a3 = document.getElementById('nav-dmg');
+        var p = document.getElementById('pkg-btn');
+        var z = document.getElementById('zip-btn');
+        if (b) b.textContent = 'Iris v' + d.version + ' • macOS Universal (Apple Silicon & Intel)';
+        if (nv) nv.textContent = 'v' + d.version;
+        if (a1 && d.dmgUrl) a1.href = d.dmgUrl;
+        if (a2 && d.dmgUrl) a2.href = d.dmgUrl;
+        if (a3 && d.dmgUrl) a3.href = d.dmgUrl;
+        if (p && d.pkgUrl) p.href = d.pkgUrl;
+        if (z && d.zipUrl) z.href = d.zipUrl;
+      })
+      .catch(function() {});
+  </script>
+</body>
+</html>
