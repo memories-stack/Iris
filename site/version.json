@@ -1,7 +1,7 @@
 {
   "version": "2.2.0",
   "minNativeVersion": "2.2.0",
-  "releasedAt": "2026-11-24T10:02:22.114Z",
+  "releasedAt": "2026-11-25T03:13:28.368Z",
   "notes": "Iris v2.2.0 — AI Face Search (AuraFace-v1 CoreML 512-dim, Apache-2.0, Recursive Multi-Camera Folder Scan, 0.08s Disk Cache .iris_faces_v2.bin, Reveal in Finder, Copy Matched Photos) + Iris Smart Tone (EXIF Camera-Aware Natural/Pro Look) + 60,000-Photo Batch Capacity + 4096px Retina Zoom + Live EXIF Info + 5-Layer Localhost Security",
   "htmlUrl": "https://memories-stack.github.io/Iris/Iris-Offline.html",
   "dmgUrl": "https://github.com/memories-stack/Iris/releases/download/v2.2.0/Iris-Installer.dmg",
